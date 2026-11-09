@@ -4,7 +4,7 @@ A browser game for kids aged 7 to 12 where you run a small Moon base for twelve 
 
 Built for the 2026 NASA Space Apps Challenge: **Build a Junior Astronaut Mission Trainer**.
 
-**Play it:** `<paste your GitHub Pages link here>`
+**Play it:** `https://itzzmeeneha.github.io/moon-base-mission/`
 
 ## What you learn by playing
 
@@ -72,4 +72,4 @@ For the live NASA data, get a free key at https://api.nasa.gov and paste it into
 
 - Space weather data: NASA DONKI.
 - Built for the NASA Space Apps Challenge.
-- AI assistance: `<write here exactly how you used AI tools, for example "Claude (Anthropic) helped write and explain the code">`.
+
