@@ -1,0 +1,75 @@
+# Moon Base Mission
+
+A browser game for kids aged 7 to 12 where you run a small Moon base for twelve days. Every day you share a limited amount of power between **life support**, a **radiation shield** and **science**. The solar storms in the game are based on **real solar flares recorded by NASA**.
+
+Built for the 2026 NASA Space Apps Challenge: **Build a Junior Astronaut Mission Trainer**.
+
+**Play it:** `<paste your GitHub Pages link here>`
+
+## What you learn by playing
+
+- Power is limited, so every choice has a cost. Science points mean less safety.
+- The Moon has a long night (about 14 Earth days), so solar panels stop working and batteries matter.
+- Space weather is real. Strong solar flares can harm a crew, and a stronger shield means less harm.
+
+## How the game works
+
+| System | What each power cell does | The catch |
+|---|---|---|
+| Life support | +10 air | The crew uses 20 air a day, so you need 2 cells just to break even |
+| Radiation shield | +8 shield | It wears down 8 a day, so you need 1 cell to hold it steady |
+| Science lab | +10 points | Uses power the other two need |
+
+- Sunny days give 5 power. Lunar night days give 2.
+- Power you don't use is saved in a battery (maximum 8).
+- Three solar storms hit on random days. You get a warning the day before.
+- A storm hurts the crew less when the shield is stronger.
+- Moon dust and small air leaks can also happen.
+- Win by surviving all 12 days. Your score is science points plus crew health.
+
+The storms are shuffled every game, so each playthrough is different.
+
+## NASA data used
+
+**NASA DONKI** (Space Weather Database Of Notifications, Knowledge, Information) through api.nasa.gov.
+
+- Endpoint: `https://api.nasa.gov/DONKI/FLR` (solar flares), asked for the last 30 days.
+- How it's used: each storm in the game is based on one real flare. The flare's class decides the storm's strength: C or smaller is small, M is medium, X is big.
+- The alert in the game shows the real flare's class and date.
+
+**If live data can't be reached**, or the Sun has been quiet, the game uses a small saved list of real flares from 2024 and labels each one as "archived" in the game. It never presents saved data as live.
+
+Archived flares used: X9.0 (2024-10-03), X8.7 (2024-05-14), X5.8 (2024-05-11), M8.8 (2024-05-11), M6.6 (2024-05-13), C7.5 (2024-05-05).
+
+## What is real and what is simplified
+
+- Real: the flare events, their classes and dates, the length of the lunar night, and the idea that shielding and power are traded off.
+- Simplified: the numbers for air, shield and damage are game balance, not engineering values. Real flare radiation can arrive within minutes to hours, but in the game every storm hits at the end of a day.
+
+## Run it on your computer
+
+1. Download `index.html`.
+2. Double-click it. It opens in your browser. No install, no account.
+
+For the live NASA data, get a free key at https://api.nasa.gov and paste it into `NASA_API_KEY` near the bottom of `index.html`. The default `DEMO_KEY` works for testing but has limits.
+
+## Put it online with GitHub Pages (free)
+
+1. Create a free account at github.com.
+2. Click **New repository**. Give it a name such as `moon-base-mission` and make it **Public**.
+3. Click **uploading an existing file** and upload `index.html` and `README.md`. Click **Commit changes**.
+4. Open the repository's **Settings**, then **Pages**.
+5. Under **Build and deployment**, set **Source** to **Deploy from a branch**. Choose branch **main** and folder **/ (root)**, then **Save**.
+6. Wait a minute or two. Your game will be at `https://<your-username>.github.io/<repository-name>/`.
+7. Open the link, play once, and paste it at the top of this README.
+
+## Files
+
+- `index.html`: the whole game (HTML, CSS and JavaScript in one file).
+- `README.md`: this file.
+
+## Credits
+
+- Space weather data: NASA DONKI.
+- Built for the NASA Space Apps Challenge.
+- AI assistance: `<write here exactly how you used AI tools, for example "Claude (Anthropic) helped write and explain the code">`.

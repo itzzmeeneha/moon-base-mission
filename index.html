@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moon Base Mission</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Lexend is designed for easy reading. If you are offline, the page falls back to your system font. -->
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#0a1424; --sky-bottom:#16304a;
+    --text:#eef2f7; --muted:rgba(238,242,247,.64);
+    --dust:#cfcac0; --earth:#8fd3ff;
+    --air:#8fd3ff; --shield:#a8e6b0; --power:#ffc26b; --health:#ff8a78; --gold:#ffe3a3;
+    --flare:#ff6f4f;
+    --glass-bg:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.04));
+    --glass-line:rgba(255,255,255,.17);
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html{background:var(--sky-top)}
+  body{margin:0;min-height:100vh;color:var(--text);font-family:"Lexend","Segoe UI Variable","Segoe UI",system-ui,sans-serif;font-size:1.02rem;line-height:1.55;background:transparent}
+  body.night .scene-wrap{filter:brightness(.62) saturate(.8)}
+  .scene-wrap{transition:filter 1.2s}
+
+  /* ---------- backdrop: stars and a rising Earth ---------- */
+  #sky{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-bottom) 100%)}
+  #stars{position:absolute;inset:0}
+  .earth{position:absolute;left:-12vmin;top:-16vmin;width:46vmin;height:46vmin;border-radius:50%;
+    background:radial-gradient(circle at 34% 30%,#d9f1ff 0,#5aa9e6 26%,#2a6db3 52%,#13335e 78%,#0b1d38 100%);
+    box-shadow:0 0 90px 10px rgba(110,180,255,.35),inset -2.2vmin -2vmin 5vmin rgba(0,0,0,.55);
+    animation:earthrise 5s cubic-bezier(.2,.7,.2,1) both}
+  .earth::after{content:"";position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(ellipse 30% 14% at 40% 38%,rgba(255,255,255,.55),transparent 70%),
+               radial-gradient(ellipse 22% 10% at 62% 62%,rgba(255,255,255,.4),transparent 70%)}
+  @keyframes earthrise{from{transform:translateY(45vmin)}to{transform:none}}
+
+  /* ---------- layout ---------- */
+  .app{max-width:960px;margin:0 auto;padding:18px 18px 40px}
+  .glass{background:var(--glass-bg);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
+         border:1px solid var(--glass-line);border-radius:30px;
+         box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 24px 50px -24px rgba(0,0,0,.7)}
+  .glass.sm{border-radius:18px}
+  h1{font-size:clamp(2.3rem,6.4vw,4rem);font-weight:700;letter-spacing:-.035em;line-height:1.02;margin:0 0 14px}
+  h2{font-size:1.05rem;font-weight:600;margin:0}
+  p{margin:0 0 12px;max-width:56ch}
+  .muted{color:var(--muted)}
+  .small{font-size:.86rem}
+
+  button{font:inherit;color:inherit;cursor:pointer}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  .cta{border:0;border-radius:18px;padding:15px 30px;font-weight:600;font-size:1.08rem;background:var(--power);color:#2b1b00;
+       box-shadow:0 10px 30px -10px rgba(255,194,107,.7);transition:transform .15s,box-shadow .15s}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px rgba(255,194,107,.85)}
+  .cta:active{transform:none}
+
+  /* ---------- scene ---------- */
+  .scene-wrap{margin:6px 0 14px;border-radius:34px;overflow:hidden;position:relative}
+  #scene-svg{display:block;width:100%;height:auto}
+  .panel-glow{transition:opacity 1s}
+  body.night .panel-glow{opacity:.12}
+  #bubble{transition:opacity .8s,stroke-width .8s}
+  .ray{stroke:var(--flare);stroke-width:3;stroke-linecap:round;stroke-dasharray:14 12;opacity:0}
+  .storm .ray{opacity:.95;animation:rayflow .5s linear infinite}
+  @keyframes rayflow{to{stroke-dashoffset:-26}}
+  .storm #sun-glow{animation:sunpulse .6s ease-in-out 4}
+  @keyframes sunpulse{50%{transform:scale(1.5)}}
+  #sun-glow{transform-origin:810px 56px;transform-box:view-box}
+  .flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 80% 8%,rgba(255,120,70,.5),transparent 60%)}
+  .flash.go{animation:flash 1.8s ease-out}
+  @keyframes flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+
+  /* ---------- title ---------- */
+  #screen-title{padding:34px 34px 30px}
+  #screen-title .lead{font-size:1.15rem;font-weight:300}
+  .status{margin-top:18px;display:flex;gap:10px;align-items:center;color:var(--muted);font-size:.86rem}
+  .dot{width:9px;height:9px;border-radius:50%;background:#777;flex:none}
+  .dot.live{background:#58e6a3;box-shadow:0 0 10px #58e6a3}
+  .dot.arch{background:var(--power)}
+
+  /* ---------- timeline ---------- */
+  .timeline{padding:16px 20px 14px;margin-bottom:12px;border-radius:24px}
+  .tl-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px}
+  .tl-top b{font-size:1.2rem;font-weight:600}
+  .ticks{display:grid;grid-template-columns:repeat(12,1fr);gap:5px}
+  .tick{position:relative;height:30px;border-radius:9px;display:grid;place-items:center;font-size:.78rem;font-weight:500;color:rgba(255,255,255,.75)}
+  .tick.s{background:rgba(255,194,107,.34)} .tick.n{background:rgba(120,140,210,.3)}
+  .tick.past{opacity:.45}
+  .tick.now{outline:2px solid #fff;outline-offset:2px;opacity:1;color:#fff}
+  .flag{position:absolute;top:-7px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--flare);box-shadow:0 0 10px var(--flare)}
+
+  /* ---------- alerts ---------- */
+  .alert{margin-bottom:12px;padding:14px 18px;border-radius:20px;background:linear-gradient(90deg,rgba(255,111,79,.28),rgba(255,111,79,.08));
+         border:1px solid rgba(255,140,110,.5);box-shadow:inset 4px 0 0 var(--flare)}
+  .alert.soft{background:linear-gradient(90deg,rgba(255,194,107,.22),rgba(255,194,107,.06));border-color:rgba(255,194,107,.4);box-shadow:inset 4px 0 0 var(--power)}
+  .alert b{font-weight:600}
+
+  /* ---------- gauges ---------- */
+  .readouts{display:grid;grid-template-columns:repeat(4,1fr) ;gap:10px;margin-bottom:12px}
+  .gauge{--c:var(--air);position:relative;padding:14px 10px 12px;text-align:center;border-radius:22px}
+  .gauge svg{width:84px;height:84px;display:block;margin:0 auto 4px}
+  .gauge circle{fill:none;stroke-width:7;stroke-linecap:round}
+  .gauge .trk{stroke:rgba(255,255,255,.12)}
+  .gauge .val{stroke:var(--c);transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dasharray .7s;filter:drop-shadow(0 0 5px var(--c))}
+  .gnum{position:absolute;top:36px;left:0;right:0;font-size:1.35rem;font-weight:600;font-variant-numeric:tabular-nums}
+  .gname{font-weight:500}
+  .ghint{font-size:.78rem;color:var(--muted);line-height:1.3;margin-top:2px}
+  .gauge.low .gnum{color:var(--health)}
+  .gauge.low .val{stroke:var(--health);filter:drop-shadow(0 0 7px var(--health))}
+
+  /* ---------- power sharing ---------- */
+  .power{padding:22px 24px 20px;margin-bottom:12px}
+  .power-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .power-head .big{font-size:2.3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--power)}
+  .row{--c:var(--air);padding:14px 0;border-top:1px solid rgba(255,255,255,.1)}
+  .rhead{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:9px}
+  .rname{font-weight:600;font-size:1.12rem}
+  .rhint{font-size:.84rem;color:var(--muted)}
+  .rproj{font-size:.9rem;font-weight:500;color:var(--c);font-variant-numeric:tabular-nums}
+  .cells{display:flex;flex-wrap:wrap;gap:6px}
+  .cell{width:32px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);padding:0;transition:background .15s,box-shadow .15s,transform .1s}
+  .cell:hover:not(:disabled){background:rgba(255,255,255,.18)}
+  .cell:active:not(:disabled){transform:scale(.94)}
+  .cell.on{background:var(--c);border-color:transparent;box-shadow:0 0 14px -2px var(--c)}
+  .cell.mark{margin-right:10px;position:relative}
+  .cell.mark::after{content:"";position:absolute;right:-9px;top:4px;bottom:4px;width:2px;border-radius:2px;background:rgba(255,255,255,.4)}
+  .cell:disabled{opacity:.25;cursor:not-allowed}
+  .power-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:16px;border-top:1px solid rgba(255,255,255,.1)}
+  .science-score{font-size:.9rem;color:var(--muted)}
+  .science-score b{display:block;font-size:1.7rem;color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+
+  /* ---------- notes ---------- */
+  .notes{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+  .notes .glass{padding:16px 20px}
+  .log p{margin:5px 0;font-size:.92rem;max-width:none}
+  .fact{border-left:3px solid var(--earth);border-radius:6px 20px 20px 6px;font-size:.92rem}
+  .fact p{max-width:none}
+
+  /* ---------- end ---------- */
+  #screen-end{padding:32px}
+  .stars-row{font-size:2rem;color:var(--gold);letter-spacing:.1em;margin:4px 0 8px}
+  #end-learn{padding-left:1.1rem;max-width:56ch}
+  #end-learn li{margin-bottom:6px}
+
+  .mute{position:fixed;right:14px;bottom:14px;z-index:5;padding:9px 16px;font-size:.85rem;font-weight:500;border-radius:999px}
+  .namefield{display:block;font-size:.9rem;color:var(--muted);margin:18px 0 6px}
+  #name-input{font:inherit;color:var(--text);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:13px 16px;width:min(320px,100%);margin:0 12px 12px 0}
+  #name-input::placeholder{color:rgba(238,242,247,.4)}
+  .btn2{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);border-radius:18px;padding:14px 24px;font-weight:500;font-size:1.02rem}
+  .btn2:hover{background:rgba(255,255,255,.16)}
+  .report{padding:18px 22px;margin:16px 0;border-radius:24px}
+  .rep-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .rep-name{font-size:1.55rem;font-weight:600;line-height:1.2}
+  .rep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0 18px}
+  .rep-stats div{padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.07);font-size:.85rem;color:var(--muted)}
+  .rep-stats b{display:block;font-size:1.55rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+  .storm-line{font-size:.92rem;padding:8px 0;border-top:1px solid rgba(255,255,255,.1)}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+  footer{margin-top:26px;font-size:.78rem;color:var(--muted);max-width:70ch}
+
+  @media (max-width:720px){
+    .readouts{grid-template-columns:repeat(2,1fr)}
+    .notes{grid-template-columns:1fr}
+    .power{padding:18px 16px}
+    #screen-title,#screen-end{padding:24px 20px}
+    .cell{width:28px;height:38px}
+    .power-head>div:last-child{text-align:left!important}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div id="sky" aria-hidden="true"><canvas id="stars"></canvas><div class="earth"></div></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+
+<button class="mute glass sm" id="btn-mute" aria-pressed="true">Sound on</button>
+
+<main class="app">
+
+  <!-- The base scene. The shield bubble gets brighter or fainter with your shield level. -->
+  <div class="scene-wrap glass" id="scene">
+    <svg id="scene-svg" viewBox="0 0 900 300" role="img" aria-label="A moon base under a protective radiation shield, with the Sun in the corner">
+      <defs>
+        <clipPath id="aboveGround"><rect x="0" y="0" width="900" height="227"/></clipPath>
+        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6d1c7"/><stop offset="1" stop-color="#4f4f55"/></linearGradient>
+        <radialGradient id="domeGrad" cx=".38" cy=".25" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#9db7d3" stop-opacity=".45"/></radialGradient>
+        <radialGradient id="bubGrad" cx=".5" cy=".6" r=".6"><stop offset="0" stop-color="#a8e6b0" stop-opacity=".02"/><stop offset=".8" stop-color="#a8e6b0" stop-opacity=".12"/><stop offset="1" stop-color="#a8e6b0" stop-opacity=".4"/></radialGradient>
+        <radialGradient id="sunGrad"><stop offset="0" stop-color="#fff6d6"/><stop offset=".5" stop-color="#ffc26b"/><stop offset="1" stop-color="#ffc26b" stop-opacity="0"/></radialGradient>
+      </defs>
+      <!-- Sun -->
+      <circle id="sun-glow" cx="810" cy="56" r="46" fill="url(#sunGrad)"/>
+      <circle cx="810" cy="56" r="17" fill="#fff3cc"/>
+      <!-- ground -->
+      <path d="M0 232 Q150 204 300 221 T600 220 T900 212 V300 H0Z" fill="url(#ground)"/>
+      <ellipse cx="150" cy="262" rx="46" ry="8" fill="#000" opacity=".2"/>
+      <ellipse cx="740" cy="270" rx="58" ry="9" fill="#000" opacity=".2"/>
+      <ellipse cx="560" cy="250" rx="24" ry="5" fill="#000" opacity=".16"/>
+      <ellipse cx="330" cy="268" rx="30" ry="6" fill="#000" opacity=".16"/>
+      <!-- solar panels -->
+      <g>
+        <path d="M205 214 L285 206 L292 228 L196 232Z" fill="#294a7a"/><path d="M205 214 L285 206 L292 228 L196 232Z" fill="#ffc26b" class="panel-glow" opacity=".5"/>
+        <rect x="243" y="228" width="4" height="12" fill="#8a8a90"/>
+        <path d="M610 206 L690 214 L700 232 L604 228Z" fill="#294a7a"/><path d="M610 206 L690 214 L700 232 L604 228Z" fill="#ffc26b" class="panel-glow" opacity=".5"/>
+        <rect x="652" y="228" width="4" height="12" fill="#8a8a90"/>
+      </g>
+      <!-- base modules and dome -->
+      <rect x="370" y="202" width="42" height="21" rx="6" fill="#aab4c3"/><rect x="488" y="202" width="42" height="21" rx="6" fill="#aab4c3"/>
+      <rect x="380" y="209" width="9" height="6" rx="2" fill="#ffd98a"/><rect x="511" y="209" width="9" height="6" rx="2" fill="#ffd98a"/>
+      <path d="M408 223 A42 42 0 0 1 492 223Z" fill="url(#domeGrad)" stroke="#e9f0f8" stroke-opacity=".6"/>
+      <rect x="440" y="196" width="20" height="27" rx="4" fill="#ffd98a" opacity=".85"/>
+      <!-- shield bubble -->
+      <circle id="bubble" clip-path="url(#aboveGround)" cx="450" cy="224" r="120" fill="url(#bubGrad)" stroke="#a8e6b0" stroke-width="2"/>
+      <!-- flare rays (only visible during a storm) -->
+      <g>
+        <line class="ray" id="ray0" x1="810" y1="56" x2="450" y2="224"/>
+        <line class="ray" id="ray1" x1="810" y1="56" x2="450" y2="224"/>
+        <line class="ray" id="ray2" x1="810" y1="56" x2="450" y2="224"/>
+        <line class="ray" id="ray3" x1="810" y1="56" x2="450" y2="224"/>
+        <line class="ray" id="ray4" x1="810" y1="56" x2="450" y2="224"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ============ TITLE ============ -->
+  <section id="screen-title" class="glass">
+    <h1>Moon Base Mission</h1>
+    <p class="lead">Four astronauts are counting on you. Share the base's power between air, radiation shield and science, and bring everyone through twelve days on the Moon.</p>
+    <p class="muted">There is never enough power for everything. The solar storms in this game come from real flares recorded by NASA.</p>
+    <label class="namefield" for="name-input">Your name or team name (it goes on your mission report)</label>
+    <input id="name-input" type="text" maxlength="24" placeholder="Mission Commander" autocomplete="off">
+    <button class="cta" id="btn-start">Start mission</button>
+    <div class="status"><span class="dot" id="data-dot"></span><span id="data-status">Checking NASA space weather data...</span></div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="screen-game" hidden>
+    <div class="timeline glass">
+      <div class="tl-top"><b id="tl-label">Day 1 of 12</b><span class="muted small" id="tl-note"></span></div>
+      <div class="ticks" id="tl"></div>
+      <div class="muted small" id="tl-sub" style="margin-top:9px"></div>
+    </div>
+
+    <div id="alerts" aria-live="assertive"></div>
+
+    <div class="readouts" id="gauges"></div>
+
+    <div class="power glass">
+      <div class="power-head">
+        <div><h2>Share the power</h2><div class="muted small" id="power-sub"></div></div>
+        <div style="text-align:right"><span class="big" id="power-left">0</span><div class="muted small">power cells left to place</div></div>
+      </div>
+      <div id="rows"></div>
+      <div class="power-foot">
+        <div class="science-score">Science points<b id="v-science">0</b></div>
+        <div class="muted small" id="battery-note" style="flex:1;min-width:200px"></div>
+        <button class="cta" id="btn-end">End the day</button>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="glass sm log" aria-live="polite"><h2>Mission log</h2><div id="log"></div></div>
+      <div class="glass sm fact" id="fact-card" hidden><p id="fact"></p></div>
+    </div>
+  </section>
+
+  <!-- ============ END ============ -->
+  <section id="screen-end" class="glass" hidden>
+    <h1 id="end-title"></h1>
+    <p id="end-text"></p>
+    <div class="report glass sm" id="report">
+      <div class="rep-top">
+        <div><div class="rep-name" id="rep-name"></div><div class="muted small" id="rep-sub"></div></div>
+        <div class="stars-row" id="end-stars" aria-hidden="true"></div>
+      </div>
+      <div class="rep-stats" id="rep-stats"></div>
+      <h2 style="margin-bottom:6px">Solar storms you faced</h2>
+      <div id="rep-storms"></div>
+    </div>
+    <h2 style="margin:18px 0 6px">What real mission planners face too</h2>
+    <ul id="end-learn"></ul>
+    <div class="actions">
+      <button class="cta" id="btn-again">Play again</button>
+      <button class="btn2" id="btn-save">Save mission report as an image</button>
+    </div>
+    <p class="muted small" style="margin:12px 0 0">The solar storms will be different next time.</p>
+  </section>
+
+  <footer>
+    Space weather data: NASA DONKI (Space Weather Database Of Notifications, Knowledge, Information) through api.nasa.gov.
+    If live data can't be reached, the game uses real flares from 2024 and labels them as archived.
+    This is a simplified learning game, not a real mission simulator.
+  </footer>
+</main>
+
+<script>
+/* =====================================================================
+   MOON BASE MISSION
+   Part 1: GAME LOGIC  (only numbers and rules, no screen code)
+   Part 2: NASA DATA   (fetch real flares from DONKI)
+   Part 3: SCREEN      (draw things, handle clicks)
+   ===================================================================== */
+
+// <LOGIC>
+const CONFIG = {
+  DAYS: 12,              // length of the mission
+  DAY_POWER: 5,          // power from solar panels on a sunny day
+  NIGHT_POWER: 2,        // power during the lunar night (batteries must help!)
+  OXY_DRAIN: 20,  OXY_PER_UNIT: 10,
+  SHIELD_DECAY: 8, SHIELD_PER_UNIT: 8,
+  SCIENCE_PER_UNIT: 10,
+  BATTERY_MAX: 8,
+  STORM_DAMAGE: {1: 20, 2: 40, 3: 70},   // crew health lost with ZERO shield
+  STORM_SHIELD_LOSS: {1: 10, 2: 20, 3: 30},
+  START: { oxygen: 80, shield: 40, battery: 2, health: 100, science: 0 }
+};
+
+// Real flares recorded in 2024 – used only if the live NASA call fails.
+const ARCHIVED_FLARES = [
+  { cls: 'X9.0', date: '2024-10-03' },
+  { cls: 'X8.7', date: '2024-05-14' },
+  { cls: 'X5.8', date: '2024-05-11' },
+  { cls: 'M8.8', date: '2024-05-11' },
+  { cls: 'M6.6', date: '2024-05-13' },
+  { cls: 'C7.5', date: '2024-05-05' }
+];
+
+const FACTS = [
+  "A night on the Moon lasts about 14 Earth days. Solar panels make no power in the dark, so bases need batteries or other power sources!",
+  "Solar flares are giant bursts of energy from the Sun. They are ranked A, B, C, M and X, and each letter is 10 times stronger than the one before.",
+  "The Moon has almost no atmosphere, so nothing blocks space radiation the way Earth's air does. That's why shielding matters so much.",
+  "The Sun goes through an activity cycle of about 11 years. Sometimes it has lots of flares, sometimes very few.",
+  "On the International Space Station, astronauts recycle water – even from sweat – and make oxygen from water.",
+  "NASA's Artemis program plans to send astronauts back to the Moon, so planners study space weather to keep crews safe.",
+  "Mission planners can't make everything perfect. They share limited power, weight and money between many needs – just like you!"
+];
+
+// Turn a flare class like "M5.3" into a game severity: 1 small, 2 medium, 3 big
+function severityOf(cls) {
+  const letter = String(cls).trim().charAt(0).toUpperCase();
+  return letter === 'X' ? 3 : letter === 'M' ? 2 : 1;
+}
+
+function shuffle(arr, rng = Math.random) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Build the secret schedule of events for a new mission.
+// flares = [{cls, date, source:'live'|'archived'}]
+function buildSchedule(flares, rng = Math.random) {
+  const D = CONFIG.DAYS;
+  const sunnyDays = 6 + Math.floor(rng() * 3);           // 6, 7 or 8 sunny days, then night
+  const events = {};                                      // day -> event
+  // pick 3 storm days (3..11), never on consecutive days
+  const candidates = shuffle([...Array(D - 3).keys()].map(i => i + 3), rng);
+  const stormDays = [];
+  for (const d of candidates) {
+    if (stormDays.length < 3 && !stormDays.some(s => Math.abs(s - d) < 2)) stormDays.push(d);
+  }
+  // pick which real flares are used: strongest ones first, then shuffle for variety
+  const pool = flares.slice().sort((a, b) => severityOf(b.cls) - severityOf(a.cls)).slice(0, 8);
+  const chosen = shuffle(pool, rng);
+  stormDays.forEach((d, i) => {
+    const f = chosen[i % chosen.length] || ARCHIVED_FLARES[i];
+    events[d] = { type: 'storm', cls: f.cls, date: f.date, source: f.source || 'archived', severity: severityOf(f.cls) };
+  });
+  // two non-storm surprises
+  const free = shuffle([...Array(D).keys()].map(i => i + 1).filter(d => !events[d]), rng);
+  events[free[0]] = { type: 'dust' };   // dust covers the solar panels
+  events[free[1]] = { type: 'leak' };   // tiny air leak
+  return { sunnyDays, events };
+}
+
+function newGame(flares, rng = Math.random) {
+  const schedule = buildSchedule(flares, rng);
+  const g = { day: 1, ...CONFIG.START, schedule, alloc: { life: 2, shield: 1, science: 0 }, stormLog: [], over: false, won: false, reason: '' };
+  return g;
+}
+
+function isNight(g) { return g.day > g.schedule.sunnyDays; }
+
+function powerToday(g) {
+  let p = isNight(g) ? CONFIG.NIGHT_POWER : CONFIG.DAY_POWER;
+  const ev = g.schedule.events[g.day];
+  if (ev && ev.type === 'dust') p -= 1;
+  return Math.max(0, p);
+}
+
+// Most power the player can spend today = today's panels + saved battery
+function spendable(g) { return powerToday(g) + g.battery; }
+function spent(g) { return g.alloc.life + g.alloc.shield + g.alloc.science; }
+function batteryAfter(g) { return Math.min(CONFIG.BATTERY_MAX, Math.max(0, spendable(g) - spent(g))); }
+
+function clampAlloc(g) {            // keep the player from spending power they don't have
+  while (spent(g) > spendable(g)) {
+    const k = ['science', 'shield', 'life'].find(k => g.alloc[k] > 0);
+    g.alloc[k]--;
+  }
+}
+
+function changeAlloc(g, sys, delta) {
+  const next = g.alloc[sys] + delta;
+  if (next < 0) return false;
+  if (delta > 0 && spent(g) >= spendable(g)) return false;
+  g.alloc[sys] = next;
+  return true;
+}
+
+// Warning text shown at the start of a day (for tonight AND tomorrow)
+function warningsFor(g) {
+  const out = [];
+  const today = g.schedule.events[g.day], tomorrow = g.schedule.events[g.day + 1];
+  if (today && today.type === 'storm') out.push({ level: 'hit', ev: today });
+  else if (tomorrow && tomorrow.type === 'storm') out.push({ level: 'soon', ev: tomorrow });
+  return out;
+}
+
+// Finish the day. Returns a list of log lines. Mutates g.
+function endDay(g) {
+  const log = [];
+  const A = g.alloc;
+  g.oxygen = Math.min(100, g.oxygen + A.life * CONFIG.OXY_PER_UNIT - CONFIG.OXY_DRAIN);
+  g.shield = Math.min(100, g.shield + A.shield * CONFIG.SHIELD_PER_UNIT - CONFIG.SHIELD_DECAY);
+  g.science += A.science * CONFIG.SCIENCE_PER_UNIT;
+  g.battery = batteryAfter(g);
+  if (g.shield < 0) g.shield = 0;
+  log.push(`Day ${g.day}: you placed ${spent(g)} power cells. Air ${A.life * 10 - 20 >= 0 ? '+' : ''}${A.life * 10 - 20}, shield ${A.shield * 8 - 8 >= 0 ? '+' : ''}${A.shield * 8 - 8}, science +${A.science * 10}.`);
+
+  const ev = g.schedule.events[g.day];
+  if (ev && ev.type === 'storm') {
+    const dmg = Math.round(CONFIG.STORM_DAMAGE[ev.severity] * (1 - g.shield / 100));
+    g.health -= dmg;
+    g.stormLog.push({ day: g.day, cls: ev.cls, date: ev.date, source: ev.source, shield: Math.round(g.shield), dmg });
+    log.push(`Solar storm! Based on a real ${ev.cls} flare. Your shield was at ${Math.round(g.shield)}%, so the crew lost ${dmg} health.`);
+    g.shield = Math.max(0, g.shield - CONFIG.STORM_SHIELD_LOSS[ev.severity]);
+  } else if (ev && ev.type === 'leak') {
+    g.oxygen -= 10;
+    log.push('A tiny air leak cost you 10 air.');
+  } else if (ev && ev.type === 'dust') {
+    log.push('Moon dust covered the solar panels, so you had 1 less power today.');
+  }
+
+  if (g.oxygen <= 0) { g.over = true; g.won = false; g.reason = 'oxygen'; }
+  else if (g.health <= 0) { g.over = true; g.won = false; g.reason = 'radiation'; }
+  else if (g.day >= CONFIG.DAYS) { g.over = true; g.won = true; }
+  else {
+    g.day++;
+    clampAlloc(g);
+  }
+  g.oxygen = Math.max(0, g.oxygen); g.health = Math.max(0, g.health);
+  return log;
+}
+
+function rating(g) {
+  if (!g.won) return 0;
+  const total = g.science + Math.round(g.health / 2);
+  return total >= 110 ? 3 : total >= 70 ? 2 : 1;
+}
+// </LOGIC>
+
+/* ======================= PART 2: NASA DATA ======================= */
+// DEMO_KEY works for testing but has limits. Get a free key at https://api.nasa.gov and paste it here.
+const NASA_API_KEY = 'DEMO_KEY';
+
+function fmtDate(d) { return d.toISOString().slice(0, 10); }
+
+async function loadLiveFlares() {
+  const end = new Date(), start = new Date(Date.now() - 30 * 86400000);
+  const url = `https://api.nasa.gov/DONKI/FLR?startDate=${fmtDate(start)}&endDate=${fmtDate(end)}&api_key=${NASA_API_KEY}`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 7000);        // give up after 7 seconds
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return data.filter(f => f.classType).map(f => ({
+      cls: f.classType,
+      date: (f.peakTime || f.beginTime || '').slice(0, 10),
+      source: 'live'
+    }));
+  } finally { clearTimeout(timer); }
+}
+
+let flareSource = { flares: ARCHIVED_FLARES.map(f => ({ ...f, source: 'archived' })), label: 'archived' };
+async function prepareData() {
+  const text = document.getElementById('data-status'), dot = document.getElementById('data-dot');
+  try {
+    const live = await loadLiveFlares();
+    if (!live.length) throw new Error('no flares returned');
+    const strong = live.filter(f => severityOf(f.cls) >= 2).length;
+    const all = strong >= 3 ? live : live.concat(ARCHIVED_FLARES.map(f => ({ ...f, source: 'archived' })));
+    flareSource = { flares: all, label: strong >= 3 ? 'live' : 'mixed' };
+    dot.className = 'dot live';
+    text.textContent = `Live data: ${live.length} real flares from NASA in the last 30 days` + (strong >= 3 ? '.' : ', plus flares from 2024 because the Sun has been quiet.');
+  } catch (e) {
+    dot.className = 'dot arch';
+    text.textContent = "Couldn't reach NASA live data, so the game uses real flares saved from 2024.";
+  }
+}
+
+/* ======================= PART 3: SCREEN ======================= */
+let G = null, lastFocus = null, factIndex = 0, playerName = 'Mission Commander';
+
+/* ---------- Sound: made with the browser's own tone generator, so there are no sound files ---------- */
+const Sound = {
+  ctx: null, on: true,
+  init() {                       // browsers only allow sound after a click, so we start it on "Start mission"
+    try {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch (e) { this.ctx = null; }
+  },
+  tone(freq, dur = 0.12, type = 'sine', vol = 0.06, delay = 0, slide = 1) {
+    if (!this.on || !this.ctx) return;
+    const t = this.ctx.currentTime + delay, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide !== 1) o.frequency.exponentialRampToValueAtTime(freq * slide, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + dur + 0.03);
+  },
+  rumble(dur = 1.6, vol = 0.16) {  // filtered noise = a low rumble
+    if (!this.on || !this.ctx) return;
+    const n = Math.floor(this.ctx.sampleRate * dur), buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
+    f.type = 'lowpass'; f.frequency.value = 380; g.gain.value = vol;
+    src.buffer = buf; src.connect(f); f.connect(g); g.connect(this.ctx.destination); src.start();
+  },
+  place()  { this.tone(540, 0.07, 'triangle', 0.05); },
+  remove() { this.tone(380, 0.07, 'triangle', 0.04); },
+  night()  { this.tone(260, 0.55, 'sine', 0.06, 0, 0.6); },
+  alert()  { [0, 0.24, 0.48].forEach((d, i) => this.tone(i === 1 ? 880 : 660, 0.18, 'square', 0.035, d)); },
+  storm()  { this.rumble(1.8, 0.18); this.tone(95, 1.3, 'sawtooth', 0.05, 0, 0.5); },
+  win()    { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.07, i * 0.15)); },
+  lose()   { [392, 330, 262].forEach((f, i) => this.tone(f, 0.4, 'sine', 0.07, i * 0.22)); }
+};
+const $ = id => document.getElementById(id);
+
+const GAUGES = [
+  { key: 'oxygen',  name: 'Air',         color: '--air',    max: 100,                hint: 'The crew uses 20 a day' },
+  { key: 'shield',  name: 'Shield',      color: '--shield', max: 100,                hint: 'Wears down 8 a day' },
+  { key: 'battery', name: 'Battery',     color: '--power',  max: CONFIG.BATTERY_MAX, hint: 'Saved power, up to 8' },
+  { key: 'health',  name: 'Crew health', color: '--health', max: 100,                hint: 'Does not heal' }
+];
+const ROWS = [
+  { k: 'life',    name: 'Life support',     color: '--air',    mark: 2, hint: 'Two cells keep the air steady. Each one adds 10 air.' },
+  { k: 'shield',  name: 'Radiation shield', color: '--shield', mark: 1, hint: 'One cell stops it wearing down. Each one adds 8 shield.' },
+  { k: 'science', name: 'Science lab',      color: '--gold',   mark: 0, hint: 'Each cell earns 10 points, but keeps nothing safe.' }
+];
+
+function show(id) { ['screen-title', 'screen-game', 'screen-end'].forEach(s => { $(s).hidden = s !== id; }); }
+
+// A dotted starfield drawn once
+function drawStars() {
+  try {
+    const c = $('stars'), w = c.width = window.innerWidth, h = c.height = window.innerHeight, x = c.getContext('2d');
+    x.clearRect(0, 0, w, h);
+    const n = Math.round(w * h / 5500);
+    for (let i = 0; i < n; i++) {
+      x.globalAlpha = 0.25 + Math.random() * 0.7;
+      x.fillStyle = Math.random() < 0.12 ? '#ffe9c4' : '#ffffff';
+      const r = Math.random() < 0.06 ? 1.6 : 0.8;
+      x.beginPath(); x.arc(Math.random() * w, Math.random() * h, r, 0, 7); x.fill();
+    }
+  } catch (e) { /* no canvas available: skip */ }
+}
+
+function buildGauges() {
+  $('gauges').innerHTML = GAUGES.map(g => `
+    <div class="gauge glass sm" id="g-${g.key}" style="--c:var(${g.color})">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle class="trk" cx="40" cy="40" r="32"/><circle class="val" id="ring-${g.key}" cx="40" cy="40" r="32" pathLength="100" style="stroke-dasharray:0 100"/></svg>
+      <div class="gnum" id="num-${g.key}">0</div>
+      <div class="gname">${g.name}</div>
+      <div class="ghint">${g.hint}</div>
+    </div>`).join('');
+}
+
+function updateGauges() {
+  GAUGES.forEach(g => {
+    const v = G[g.key], pct = Math.max(0, Math.min(100, v / g.max * 100));
+    $('ring-' + g.key).style.strokeDasharray = `${pct} 100`;
+    $('num-' + g.key).textContent = Math.round(v);
+    $('g-' + g.key).classList.toggle('low', g.key !== 'battery' && pct < 30);
+  });
+}
+
+function updateTimeline() {
+  const D = CONFIG.DAYS;
+  $('tl-label').textContent = `Day ${G.day} of ${D}`;
+  $('tl-note').textContent = (isNight(G) ? 'Lunar night. ' : 'Sunlight. ') + `The panels make ${powerToday(G)} power today.`;
+  $('tl-sub').textContent = `Sunlight lasts until day ${G.schedule.sunnyDays}. After that the panels barely work, so save power in the battery.`;
+  $('tl').innerHTML = Array.from({ length: D }, (_, i) => {
+    const d = i + 1, ev = G.schedule.events[d];
+    const night = d > G.schedule.sunnyDays;
+    const flag = ev && ev.type === 'storm' && d <= G.day + 1 ? '<i class="flag"></i>' : '';
+    const cls = ['tick', night ? 'n' : 's', d < G.day ? 'past' : '', d === G.day ? 'now' : ''].join(' ');
+    return `<div class="${cls}" title="Day ${d}${night ? ', lunar night' : ', sunlight'}">${flag}${d}</div>`;
+  }).join('');
+}
+
+function updateAlerts() {
+  const box = $('alerts'); box.innerHTML = '';
+  const ev = G.schedule.events[G.day];
+  if (ev && ev.type === 'dust') {
+    box.innerHTML += `<div class="alert soft"><b>Moon dust on the panels.</b> You have 1 less power today.</div>`;
+  }
+  warningsFor(G).forEach(w => {
+    const size = ['', 'small', 'medium', 'big'][w.ev.severity];
+    const when = w.level === 'hit' ? 'tonight' : 'tomorrow night';
+    const origin = w.ev.source === 'live' ? 'a flare NASA recorded recently' : 'a real flare NASA recorded in the past';
+    box.innerHTML += `<div class="alert"><b>Space weather alert.</b> A ${size} radiation storm will reach the base ${when}. It is based on ${origin}: class ${w.ev.cls}, ${w.ev.date}. A stronger shield means less harm to the crew.</div>`;
+  });
+}
+
+function projection(k) {
+  const a = G.alloc[k];
+  if (k === 'life')   return `Air tonight: ${Math.round(G.oxygen)} to ${Math.round(Math.min(100, G.oxygen + a * 10 - 20))}`;
+  if (k === 'shield') return `Shield tonight: ${Math.round(G.shield)} to ${Math.round(Math.max(0, Math.min(100, G.shield + a * 8 - 8)))}`;
+  return `+${a * 10} points`;
+}
+
+function updatePower() {
+  const total = spendable(G), left = total - spent(G);
+  $('power-left').textContent = left;
+  $('power-sub').textContent = `The panels give ${powerToday(G)} and the battery holds ${G.battery}.`;
+  $('rows').innerHTML = ROWS.map(r => {
+    const a = G.alloc[r.k];
+    const cells = Array.from({ length: total }, (_, i) => {
+      const n = i + 1;
+      const cls = ['cell', n <= a ? 'on' : '', n === r.mark ? 'mark' : ''].join(' ');
+      const locked = n > a + left;
+      return `<button class="${cls}" data-k="${r.k}" data-n="${n}" aria-label="${r.name}: ${n} power cell${n > 1 ? 's' : ''}" aria-pressed="${n <= a}"${locked ? ' disabled' : ''}></button>`;
+    }).join('');
+    return `<div class="row" style="--c:var(${r.color})"><div class="rhead"><div><div class="rname">${r.name}</div><div class="rhint">${r.hint}</div></div><div class="rproj">${projection(r.k)}</div></div><div class="cells">${cells}</div></div>`;
+  }).join('');
+  if (lastFocus) {
+    const b = document.querySelector(`.cell[data-k="${lastFocus.k}"][data-n="${lastFocus.n}"]`);
+    if (b && !b.disabled) b.focus();
+  }
+  const after = batteryAfter(G), wasted = left > CONFIG.BATTERY_MAX;
+  $('battery-note').textContent = `Power you don't place is saved. Battery tonight: ${after}.` + (wasted ? ' The battery is full, so the extra is wasted.' : '');
+  $('v-science').textContent = G.science;
+}
+
+// Move the shield bubble and the flare rays to match the game
+function updateScene() {
+  const bubble = $('bubble');
+  bubble.style.opacity = (0.25 + 0.75 * G.shield / 100).toFixed(2);
+  bubble.style.strokeWidth = (1.5 + G.shield / 40).toFixed(1);
+  const cx = 450, cy = 224, sx = 810, sy = 56;
+  const base = Math.atan2(sy - cy, sx - cx);
+  const R = G.shield >= 45 ? 120 : 44;        // strong shield stops rays at the bubble, weak shield lets them through
+  for (let i = 0; i < 5; i++) {
+    const a = base + (i - 2) * 0.17, ray = $('ray' + i);
+    ray.setAttribute('x2', (cx + R * Math.cos(a)).toFixed(1));
+    ray.setAttribute('y2', (cy + R * Math.sin(a)).toFixed(1));
+  }
+}
+
+function render() {
+  document.body.classList.toggle('night', isNight(G));
+  updateTimeline(); updateAlerts(); updateGauges(); updatePower(); updateScene();
+}
+
+function addLog(lines) {
+  const box = $('log');
+  box.innerHTML = lines.map(t => `<p>${t}</p>`).join('') + box.innerHTML;
+}
+
+function stormEffect() {
+  const sc = $('scene'), fl = $('flash');
+  sc.classList.add('storm'); fl.classList.add('go');
+  setTimeout(() => { sc.classList.remove('storm'); fl.classList.remove('go'); }, 2800);
+}
+
+function startGame() {
+  G = newGame(flareSource.flares);
+  lastFocus = null; factIndex = 0;
+  $('log').innerHTML = ''; $('fact-card').hidden = true;
+  show('screen-game'); render();
+  window.scrollTo && window.scrollTo(0, 0);
+}
+
+function reportData() {
+  const lost = !G.won;
+  return {
+    name: playerName,
+    sub: G.won ? 'Completed twelve days on the Moon' : `Mission ended on day ${G.day}`,
+    stars: rating(G),
+    stats: [
+      ['Days completed', G.won ? CONFIG.DAYS : G.day - 1],
+      ['Science points', G.science],
+      ['Crew health left', Math.round(G.health)],
+      ['Air left', Math.round(G.oxygen)]
+    ],
+    storms: G.stormLog.map(s => `Day ${s.day}: class ${s.cls} flare from ${s.date} (${s.source === 'live' ? 'live NASA data' : 'archived real flare'}). Shield was ${s.shield}%, so the crew lost ${s.dmg} health.`)
+  };
+}
+
+function finish() {
+  show('screen-end');
+  const stars = rating(G), R = reportData();
+  if (G.won) {
+    $('end-title').textContent = 'Mission complete';
+    $('end-text').textContent = 'All four astronauts made it through twelve days on the Moon.';
+  } else {
+    const air = G.reason === 'oxygen';
+    $('end-title').textContent = air ? 'The base ran out of air' : 'The crew took too much radiation';
+    $('end-text').textContent = air
+      ? `Air ran out on day ${G.day}. Life support needs at least two power cells every day. Real engineers learn from problems like this too.`
+      : `Radiation caught the crew on day ${G.day}. Raise the shield before a space weather alert arrives. Real engineers learn from problems like this too.`;
+  }
+  $('end-stars').textContent = G.won ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : '';
+  $('rep-name').textContent = R.name;
+  $('rep-sub').textContent = R.sub;
+  $('rep-stats').innerHTML = R.stats.map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
+  $('rep-storms').innerHTML = R.storms.length
+    ? R.storms.map(t => `<div class="storm-line">${t}</div>`).join('')
+    : '<div class="storm-line">No storm reached the base before the mission ended.</div>';
+  $('end-learn').innerHTML = [
+    'Power has to be shared. Choosing science today can mean less safety tomorrow.',
+    'Solar power disappears during the lunar night, so planning ahead and batteries matter.',
+    'Radiation from the Sun changes with space weather, so shielding is a real trade-off.'
+  ].map(t => `<li>${t}</li>`).join('');
+}
+
+// Draw the mission report onto a canvas and download it as a PNG
+function saveReport() {
+  const R = reportData(), W = 1000, H = 440 + Math.max(1, R.storms.length) * 62;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), F = 'Lexend, "Segoe UI", system-ui, sans-serif';
+  const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0a1424'); bg.addColorStop(1, '#16304a');
+  x.fillStyle = bg; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#ffffff';
+  for (let i = 0; i < 90; i++) { x.globalAlpha = 0.2 + Math.random() * 0.6; x.fillRect(Math.random() * W, Math.random() * H, 1.6, 1.6); }
+  x.globalAlpha = 1;
+  x.fillStyle = '#eef2f7'; x.font = `700 46px ${F}`; x.fillText('Moon Base Mission report', 56, 90);
+  x.font = `600 34px ${F}`; x.fillText(R.name, 56, 150);
+  x.fillStyle = 'rgba(238,242,247,.65)'; x.font = `300 24px ${F}`; x.fillText(R.sub, 56, 188);
+  if (G.won) { x.fillStyle = '#ffe3a3'; x.font = `600 44px ${F}`; x.fillText('★'.repeat(R.stars) + '☆'.repeat(3 - R.stars), W - 56 - 150, 100); }
+  R.stats.forEach(([k, v], i) => {
+    const bx = 56 + i * 226;
+    x.fillStyle = 'rgba(255,255,255,.08)'; x.beginPath(); x.roundRect ? x.roundRect(bx, 220, 206, 100, 16) : x.rect(bx, 220, 206, 100); x.fill();
+    x.fillStyle = 'rgba(238,242,247,.65)'; x.font = `300 20px ${F}`; x.fillText(k, bx + 16, 252);
+    x.fillStyle = '#eef2f7'; x.font = `600 38px ${F}`; x.fillText(String(v), bx + 16, 300);
+  });
+  x.fillStyle = '#eef2f7'; x.font = `600 26px ${F}`; x.fillText('Solar storms faced', 56, 372);
+  x.font = `300 20px ${F}`; x.fillStyle = 'rgba(238,242,247,.85)';
+  const lines = R.storms.length ? R.storms : ['No storm reached the base before the mission ended.'];
+  lines.forEach((t, i) => {
+    const words = t.split(' '); let row = '', y = 410 + i * 62;
+    words.forEach(w => { if (x.measureText(row + w).width > W - 112) { x.fillText(row, 56, y); row = ''; y += 26; } row += w + ' '; });
+    x.fillText(row, 56, y);
+  });
+  x.fillStyle = 'rgba(238,242,247,.5)'; x.font = `300 16px ${F}`; x.fillText('Storms are based on real flares from NASA DONKI. Simplified learning game.', 56, H - 24);
+  c.toBlob(b => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'moon-base-mission-report.png';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  });
+}
+
+// ---------- clicks ----------
+$('btn-start').addEventListener('click', () => {
+  playerName = ($('name-input').value || '').trim().slice(0, 24) || 'Mission Commander';
+  Sound.init(); startGame();
+});
+$('btn-again').addEventListener('click', () => { Sound.init(); startGame(); });
+$('btn-save').addEventListener('click', saveReport);
+$('btn-mute').addEventListener('click', () => {
+  Sound.on = !Sound.on;
+  $('btn-mute').textContent = Sound.on ? 'Sound on' : 'Sound off';
+  $('btn-mute').setAttribute('aria-pressed', String(Sound.on));
+});
+
+$('rows').addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.cell');
+  if (!b || b.disabled) return;
+  const k = b.dataset.k, n = Number(b.dataset.n);
+  const target = G.alloc[k] === n ? n - 1 : n;       // tapping the last filled cell takes it back
+  lastFocus = { k, n };
+  (target > G.alloc[k] ? Sound.place() : Sound.remove());
+  while (G.alloc[k] < target && changeAlloc(G, k, 1)) {}
+  while (G.alloc[k] > target && changeAlloc(G, k, -1)) {}
+  render();
+});
+
+$('btn-end').addEventListener('click', () => {
+  lastFocus = null;
+  const ev = G.schedule.events[G.day];
+  const lines = endDay(G);
+  addLog(lines);
+  if (ev && ev.type === 'storm') stormEffect();
+  $('fact').textContent = 'Space fact: ' + FACTS[factIndex++ % FACTS.length];
+  $('fact-card').hidden = false;
+  if (G.over) finish(); else render();
+  if (ev && ev.type === 'storm') Sound.storm(); else Sound.night();
+  if (G.over) setTimeout(() => (G.won ? Sound.win() : Sound.lose()), 700);
+  else if (warningsFor(G).length) setTimeout(() => Sound.alert(), ev && ev.type === 'storm' ? 1900 : 500);
+});
+
+window.addEventListener && window.addEventListener('resize', drawStars);
+drawStars();
+buildGauges();
+prepareData();   // start loading NASA data right away
+</script>
+</body>
+</html>
