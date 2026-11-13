@@ -299,10 +299,10 @@
   #scene-slot{order:0} .timeline{order:1} #alerts{order:2} #gauges{order:3} #crew{order:4} #advice{order:5} #power{order:6}
   #scene-slot .scene-wrap{margin:0 0 12px}
   .hudbar{display:none}
-  @media (min-width:1000px){
+  @media (min-width:760px){
     body.ingame .app{max-width:1360px}
     body.ingame .topbar{padding:10px 0 10px}
-    .game-grid{display:grid;grid-template-columns:168px minmax(0,1fr) 330px;gap:12px;align-items:start}
+    .game-grid{display:grid;grid-template-columns:150px minmax(0,1fr) 300px;gap:12px;align-items:start}
     .col-left,.col-mid,.col-right{display:block}
     .col-left,.col-right{position:sticky;top:10px}
     /* vertical mission calendar */
@@ -350,14 +350,64 @@
     .col-right .member span{font-size:.72rem}
     .notes{margin-top:12px}
   }
-  @media (min-width:1000px) and (max-height:720px){
+  @media (min-width:760px) and (max-height:720px){
     .col-right .ghint{display:none}
     .rhint{display:none}
     .cell{height:32px}
     .row{padding:7px 0}
     .alert{padding:8px 14px;font-size:.88rem}
   }
-  @media (max-width:999px){
+  @media (min-width:1200px){
+    .game-grid{grid-template-columns:168px minmax(0,1fr) 330px}
+  }
+  /* medium windows (small laptops, or big display scaling): calendar goes across the top, two columns below */
+  @media (min-width:760px) and (max-width:979px){
+    .game-grid{grid-template-columns:minmax(0,1fr) 260px;grid-template-areas:"left left" "mid right"}
+    .col-left{grid-area:left;position:static}
+    .col-mid{grid-area:mid} .col-right{grid-area:right}
+    .timeline{padding:10px 14px}
+    .timeline .tl-top{flex-direction:row;align-items:baseline;gap:12px;margin-bottom:8px}
+    .timeline .ticks{grid-template-columns:repeat(12,1fr)}
+    .timeline .tick{justify-content:center;padding:0;height:26px}
+    .timeline .tick::after{display:none}
+    .timeline .flag{left:auto;right:-3px;top:-6px;margin:0}
+    .col-right .member span{display:none}
+    .mission-id{display:none}
+    body.ingame .topbar{flex-wrap:nowrap}
+    body.ingame .brand small{display:none}
+    .power-head .label{display:none}
+    .power-head > div:first-child .muted.small{display:none}
+    .power-head > div:nth-child(2) .muted.small{font-size:.72rem}
+    .power-head h2{font-size:1.1rem!important}
+    .timeline #tl-note{display:none}
+  }
+  /* short windows: shrink the extras so the controls still fit */
+  @media (min-width:760px) and (max-height:700px){
+    #scene-slot{display:none}
+    .timeline .tick{height:23px}
+    .timeline .ticks{gap:3px}
+    .timeline .tl-top b{font-size:1.05rem}
+    .timeline #tl-note{font-size:.78rem}
+    .col-right .gauge svg{width:50px;height:50px}
+    .col-right .gnum{top:22px;font-size:.98rem}
+    .col-right .gauge{padding:8px 6px 6px}
+    .advice .pip{width:44px}
+    .advice .bubble{font-size:.88rem;padding:8px 12px}
+    .advice .bubble .who{display:none}
+    .power-head .label{display:none}
+    .power-head h2{font-size:1.1rem!important}
+    .power-head .muted.small{font-size:.76rem}
+    .cell{height:28px;width:28px}
+    .row{padding:5px 0}
+    .rname{font-size:.95rem}
+    .power-foot{padding-top:8px}
+    .science-score b{font-size:1.2rem}
+    .alert{padding:6px 12px;font-size:.84rem}
+    .alert .label{display:none}
+    body.ingame .topbar{padding:6px 0}
+    body.ingame .brand small{display:none}
+  }
+  @media (max-width:759px){
     .hudbar{display:flex;position:sticky;top:0;z-index:12;justify-content:space-between;gap:6px;margin:0 -18px 12px;padding:9px 14px;
       background:rgba(5,9,16,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
       font-family:var(--mono);font-size:.74rem;flex-wrap:wrap}
@@ -412,7 +462,7 @@
   .earthbox ul{margin:8px 0 0;padding-left:1.1rem}
   .earthbox li{margin-bottom:8px;max-width:70ch}
 
-  @media (max-width:760px){
+  @media (max-width:759px){
     .crew{grid-template-columns:repeat(2,1fr)}
     .lab{padding:18px 16px}
     .lab-grid{grid-template-columns:1fr}
@@ -1043,7 +1093,7 @@ function show(id) {
 }
 
 // On wide screens the End the day button sits in the power header, so it's always visible without scrolling
-const wide = window.matchMedia ? matchMedia('(min-width:1000px)') : { matches: false };
+const wide = window.matchMedia ? matchMedia('(min-width:760px)') : { matches: false };
 function placeEndButton() { $(wide.matches ? 'end-slot-top' : 'end-slot-bottom').appendChild($('btn-end')); }
 wide.addEventListener && wide.addEventListener('change', placeEndButton);
 
