@@ -6,6 +6,17 @@ Built for the 2026 NASA Space Apps Challenge: **Build a Junior Astronaut Mission
 
 **Play it:** `https://itzzmeeneha.github.io/moon-base-mission/`
 
+## Meet Pip, your training officer
+
+New players are never thrown in without help. Pip, a small astronaut guide drawn in SVG, walks you through the game:
+
+- **Mission briefing (before the game):** 7 short steps that explain the goal, the four readings, how to place power cells (with a practice row you can tap), the three systems, day and night, solar storms, and a simple first-day plan. You can reopen it any time with **How to play**.
+- **First-day tour:** on your first mission, Pip highlights each part of the screen and explains it.
+- **Daily advice:** Pip reads your plan before you end the day and warns you if the air will run out, a storm is coming, or the night is close. Pip's face changes when things look risky.
+- **Debrief:** at the end, Pip gives a tip based on how your mission went.
+
+Players who already know the game can press **I know how to play** to skip straight in.
+
 ## What you learn by playing
 
 - Power is limited, so every choice has a cost. Science points mean less safety.
@@ -40,6 +51,8 @@ The storms are shuffled every game, so each playthrough is different.
 **If live data can't be reached**, or the Sun has been quiet, the game uses a small saved list of real flares from 2024 and labels each one as "archived" in the game. It never presents saved data as live.
 
 Archived flares used: X9.0 (2024-10-03), X8.7 (2024-05-14), X5.8 (2024-05-11), M8.8 (2024-05-11), M6.6 (2024-05-13), C7.5 (2024-05-05).
+
+**Other sources for the space facts shown in the game:** NASA Open Science Data Repository (OSDR) for how low gravity affects astronauts' bones and muscles, RadLab (OSDR radiation dosimetry database) for the fact that ISS instruments measure astronauts' radiation dose, and the Canadian Space Agency's "Food production on the Moon and in remote areas" toolkit. NASA does not endorse this project.
 
 ## What is real and what is simplified
 

@@ -3,61 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Moon Base Mission</title>
+<title>Moon Base Mission | Junior Astronaut Trainer</title>
+<meta name="description" content="Run a Moon base for twelve days. Share limited power between air, a radiation shield and science while solar storms based on real NASA flares test your choices.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Lexend is designed for easy reading. If you are offline, the page falls back to your system font. -->
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Lexend is designed for easy reading. IBM Plex Mono is used for the mission-control labels.
+     If you are offline, the page falls back to your system fonts. -->
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --sky-top:#0a1424; --sky-bottom:#16304a;
-    --text:#eef2f7; --muted:rgba(238,242,247,.64);
-    --dust:#cfcac0; --earth:#8fd3ff;
+    --bg-top:#04070d; --bg-bottom:#0d1a2b;
+    --text:#eef2f7; --muted:rgba(226,233,242,.62); --faint:rgba(226,233,242,.38);
+    --line:rgba(160,190,230,.16); --line-strong:rgba(160,190,230,.3);
+    --panel:linear-gradient(180deg,rgba(17,27,43,.86),rgba(9,15,26,.86));
+    --earth:#8fd3ff;
     --air:#8fd3ff; --shield:#a8e6b0; --power:#ffc26b; --health:#ff8a78; --gold:#ffe3a3;
     --flare:#ff6f4f;
-    --glass-bg:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.04));
-    --glass-line:rgba(255,255,255,.17);
+    --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}
-  html{background:var(--sky-top)}
+  html{background:var(--bg-top)}
   body{margin:0;min-height:100vh;color:var(--text);font-family:"Lexend","Segoe UI Variable","Segoe UI",system-ui,sans-serif;font-size:1.02rem;line-height:1.55;background:transparent}
-  body.night .scene-wrap{filter:brightness(.62) saturate(.8)}
-  .scene-wrap{transition:filter 1.2s}
+  body.night .scene-wrap{filter:brightness(.6) saturate(.8)}
+  body.locked{overflow:hidden}
 
   /* ---------- backdrop: stars and a rising Earth ---------- */
-  #sky{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-bottom) 100%)}
+  #sky{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:linear-gradient(180deg,var(--bg-top) 0%,var(--bg-bottom) 100%)}
+  #sky::after{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:64px 64px;opacity:.18;mask-image:radial-gradient(ellipse at 50% 0%,#000 0,transparent 70%);-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0,transparent 70%)}
   #stars{position:absolute;inset:0}
-  .earth{position:absolute;left:-12vmin;top:-16vmin;width:46vmin;height:46vmin;border-radius:50%;
+  .earth{position:absolute;right:-10vmin;top:-14vmin;width:40vmin;height:40vmin;border-radius:50%;
     background:radial-gradient(circle at 34% 30%,#d9f1ff 0,#5aa9e6 26%,#2a6db3 52%,#13335e 78%,#0b1d38 100%);
-    box-shadow:0 0 90px 10px rgba(110,180,255,.35),inset -2.2vmin -2vmin 5vmin rgba(0,0,0,.55);
-    animation:earthrise 5s cubic-bezier(.2,.7,.2,1) both}
+    box-shadow:0 0 90px 10px rgba(110,180,255,.28),inset -2.2vmin -2vmin 5vmin rgba(0,0,0,.55);
+    animation:earthrise 5s cubic-bezier(.2,.7,.2,1) both;opacity:.85}
   .earth::after{content:"";position:absolute;inset:0;border-radius:50%;
     background:radial-gradient(ellipse 30% 14% at 40% 38%,rgba(255,255,255,.55),transparent 70%),
                radial-gradient(ellipse 22% 10% at 62% 62%,rgba(255,255,255,.4),transparent 70%)}
   @keyframes earthrise{from{transform:translateY(45vmin)}to{transform:none}}
 
   /* ---------- layout ---------- */
-  .app{max-width:960px;margin:0 auto;padding:18px 18px 40px}
-  .glass{background:var(--glass-bg);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
-         border:1px solid var(--glass-line);border-radius:30px;
-         box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 24px 50px -24px rgba(0,0,0,.7)}
-  .glass.sm{border-radius:18px}
-  h1{font-size:clamp(2.3rem,6.4vw,4rem);font-weight:700;letter-spacing:-.035em;line-height:1.02;margin:0 0 14px}
-  h2{font-size:1.05rem;font-weight:600;margin:0}
-  p{margin:0 0 12px;max-width:56ch}
+  .app{max-width:1000px;margin:0 auto;padding:0 18px 48px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;position:relative;
+         box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 24px 50px -28px rgba(0,0,0,.8);
+         backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  /* thin corner brackets, like a display on a control desk */
+  .hud::before,.hud::after{content:"";position:absolute;width:14px;height:14px;pointer-events:none;border-color:var(--power);opacity:.75}
+  .hud::before{top:-1px;left:-1px;border-top:2px solid;border-left:2px solid;border-top-left-radius:18px}
+  .hud::after{bottom:-1px;right:-1px;border-bottom:2px solid;border-right:2px solid;border-bottom-right-radius:18px}
+  .label{font-family:var(--mono);font-size:.72rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  h1{font-size:clamp(2.4rem,6.6vw,4.4rem);font-weight:700;letter-spacing:-.035em;line-height:1;margin:10px 0 16px}
+  h2{font-size:1.08rem;font-weight:600;margin:0}
+  p{margin:0 0 12px;max-width:58ch}
   .muted{color:var(--muted)}
   .small{font-size:.86rem}
 
   button{font:inherit;color:inherit;cursor:pointer}
-  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
-  .cta{border:0;border-radius:18px;padding:15px 30px;font-weight:600;font-size:1.08rem;background:var(--power);color:#2b1b00;
-       box-shadow:0 10px 30px -10px rgba(255,194,107,.7);transition:transform .15s,box-shadow .15s}
-  .cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px rgba(255,194,107,.85)}
+  button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  .cta{border:0;border-radius:12px;padding:14px 28px;font-weight:600;font-size:1.05rem;background:var(--power);color:#2b1b00;
+       box-shadow:0 10px 30px -12px rgba(255,194,107,.8);transition:transform .15s,box-shadow .15s,background .15s}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px -12px rgba(255,194,107,.95);background:#ffcd85}
   .cta:active{transform:none}
+  .cta.sm{padding:10px 20px;font-size:.95rem}
+  .btn2{border:1px solid var(--line-strong);background:rgba(255,255,255,.04);border-radius:12px;padding:13px 22px;font-weight:500;font-size:1rem;transition:background .15s,border-color .15s}
+  .btn2:hover{background:rgba(255,255,255,.1);border-color:rgba(200,220,245,.5)}
+  .btn2.sm{padding:9px 16px;font-size:.88rem}
+  .link{background:none;border:0;padding:6px 4px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:.9rem}
+  .link:hover{color:var(--text)}
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+  .brand-mark{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f4f1ea,#a9a49a 60%,#6c6962);box-shadow:0 0 0 3px rgba(255,194,107,.18)}
+  .brand small{display:block;font-weight:400;color:var(--faint);letter-spacing:.12em;font-size:.68rem}
+  .top-actions{display:flex;gap:8px;align-items:center}
+  .mission-id{font-family:var(--mono);font-size:.75rem;color:var(--faint);letter-spacing:.1em;margin-right:6px}
 
   /* ---------- scene ---------- */
-  .scene-wrap{margin:6px 0 14px;border-radius:34px;overflow:hidden;position:relative}
+  .scene-wrap{margin:0 0 14px;border-radius:18px;overflow:hidden;position:relative;transition:filter 1.2s}
+  .scene-wrap .scene-tag{position:absolute;left:16px;top:12px;z-index:1}
+  .scene-wrap .scene-tag.r{left:auto;right:16px}
   #scene-svg{display:block;width:100%;height:auto}
   .panel-glow{transition:opacity 1s}
   body.night .panel-glow{opacity:.12}
@@ -68,105 +94,234 @@
   .storm #sun-glow{animation:sunpulse .6s ease-in-out 4}
   @keyframes sunpulse{50%{transform:scale(1.5)}}
   #sun-glow{transform-origin:810px 56px;transform-box:view-box}
-  .flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 80% 8%,rgba(255,120,70,.5),transparent 60%)}
+  .beacon{animation:beacon 2.4s ease-in-out infinite}
+  @keyframes beacon{50%{opacity:.15}}
+  .flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 80% 8%,rgba(255,120,70,.5),transparent 60%);z-index:40}
   .flash.go{animation:flash 1.8s ease-out}
   @keyframes flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
 
+  /* ---------- Pip, the guide ---------- */
+  .pip{display:block;overflow:visible}
+  .pip-float{animation:pipfloat 3.6s ease-in-out infinite}
+  @keyframes pipfloat{50%{transform:translateY(-4px)}}
+  .pip-eyes{transform-origin:60px 55px;transform-box:view-box;animation:blink 4.2s infinite}
+  @keyframes blink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+  .pip-bulb{animation:bulb 1.8s ease-in-out infinite}
+  @keyframes bulb{50%{opacity:.35}}
+  .pip-arm-r{transform-origin:89px 92px;transform-box:view-box}
+  .pip.wave .pip-arm-r{animation:wave 1.6s ease-in-out infinite}
+  @keyframes wave{0%,100%{transform:rotate(-150deg)}50%{transform:rotate(-120deg)}}
+  .pip .m-worried,.pip .m-cheer{display:none}
+  .pip.worried .m-happy,.pip.cheer .m-happy{display:none}
+  .pip.worried .m-worried{display:inline}
+  .pip.cheer .m-cheer{display:inline}
+  .pip.worried .pip-bulb{fill:var(--flare)}
+  .pip.cheer .pip-arm-r{animation:wave .9s ease-in-out infinite}
+
+  .bubble{position:relative;background:#f3f5f8;color:#14202f;border-radius:16px;padding:14px 18px;font-size:1rem;line-height:1.5;box-shadow:0 18px 40px -20px rgba(0,0,0,.8)}
+  .bubble b{color:#0b1420}
+  .bubble .who{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;margin-bottom:4px}
+  .bubble.left::before{content:"";position:absolute;left:-9px;top:26px;border:9px solid transparent;border-left:0;border-right-color:#f3f5f8}
+  .bubble.down::before{content:"";position:absolute;left:46px;bottom:-9px;border:9px solid transparent;border-bottom:0;border-top-color:#f3f5f8}
+  .bubble.pop{animation:pop .35s cubic-bezier(.2,.9,.3,1.3)}
+  @keyframes pop{from{transform:scale(.96);opacity:.3}to{transform:none;opacity:1}}
+
   /* ---------- title ---------- */
-  #screen-title{padding:34px 34px 30px}
-  #screen-title .lead{font-size:1.15rem;font-weight:300}
-  .status{margin-top:18px;display:flex;gap:10px;align-items:center;color:var(--muted);font-size:.86rem}
+  #screen-title{padding:34px 34px 28px;display:grid;grid-template-columns:1.35fr 1fr;gap:26px;align-items:center}
+  #screen-title .lead{font-size:1.18rem;font-weight:300}
+  .title-guide{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .title-guide .bubble{max-width:320px}
+  .title-guide .pip{width:150px}
+  .facts-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 6px;max-width:520px}
+  .facts-strip div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .facts-strip b{display:block;font-size:1.5rem;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+  .facts-strip span{font-size:.8rem;color:var(--muted);line-height:1.3;display:block}
+  .namefield{display:block;font-size:.9rem;color:var(--muted);margin:16px 0 6px}
+  #name-input{font:inherit;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--line-strong);border-radius:12px;padding:12px 16px;width:min(340px,100%);margin:0 0 14px}
+  #name-input::placeholder{color:var(--faint)}
+  .start-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .status{margin-top:16px;display:flex;gap:10px;align-items:center;color:var(--muted);font-size:.84rem}
   .dot{width:9px;height:9px;border-radius:50%;background:#777;flex:none}
   .dot.live{background:#58e6a3;box-shadow:0 0 10px #58e6a3}
   .dot.arch{background:var(--power)}
 
+  /* ---------- briefing (how to play) ---------- */
+  .overlay{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:rgba(2,5,10,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow:auto}
+  .brief{width:min(940px,100%);padding:22px 26px 20px;animation:rise .35s ease-out}
+  @keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+  .brief-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+  .progress{height:3px;border-radius:3px;background:rgba(255,255,255,.08);margin-bottom:18px;overflow:hidden}
+  .progress i{display:block;height:100%;background:var(--power);transition:width .35s}
+  .brief-body{display:grid;grid-template-columns:250px 1fr;gap:28px;align-items:start;min-height:340px}
+  .brief-guide{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .brief-guide .pip{width:130px}
+  .brief-guide .bubble{width:100%}
+  .brief-main h2{font-size:1.6rem;letter-spacing:-.02em;margin:2px 0 14px}
+  .brief-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .brief-foot .btns{display:flex;gap:10px}
+  .kbd{font-family:var(--mono);font-size:.75rem;color:var(--faint)}
+
+  /* diagrams inside the briefing */
+  .vis{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:rgba(255,255,255,.025)}
+  .vis + .vis{margin-top:10px}
+  .bignums{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .bignums div{border:1px solid var(--line);border-radius:12px;padding:14px}
+  .bignums b{display:block;font-size:2.2rem;line-height:1;font-weight:600;margin-bottom:6px}
+  .bignums span{font-size:.86rem;color:var(--muted)}
+  .meters{display:grid;gap:12px}
+  .meter{display:grid;grid-template-columns:110px 1fr auto;gap:12px;align-items:center;font-size:.92rem}
+  .meter .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden}
+  .meter .bar i{display:block;height:100%;border-radius:6px}
+  .meter em{font-style:normal;font-size:.8rem;color:var(--muted);min-width:150px}
+  .lose{margin-top:14px;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,138,120,.4);background:rgba(255,138,120,.08);font-size:.92rem}
+  .sysrow{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+  .sysrow:first-child{border-top:0;padding-top:2px}
+  .sysrow b{font-weight:600;display:block}
+  .sysrow span{font-size:.84rem;color:var(--muted)}
+  .mini-cells{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .mini-cells i{width:22px;height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);display:inline-block}
+  .mini-cells i.on{background:var(--c);border-color:transparent;box-shadow:0 0 10px -2px var(--c)}
+  .mini-cells i.mark{margin-right:9px;position:relative}
+  .mini-cells i.mark::after{content:"";position:absolute;right:-8px;top:3px;bottom:3px;width:2px;border-radius:2px;background:rgba(255,255,255,.55)}
+  .mini-cells small{font-size:.8rem;color:var(--muted);margin-left:8px}
+  .try-out{margin-top:12px;font-size:.95rem;min-height:1.5em}
+  .tl-demo{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:4px 0 12px}
+  .tl-demo i{height:26px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-size:.72rem;font-family:var(--mono);color:rgba(255,255,255,.8);position:relative}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:.86rem;color:var(--muted)}
+  .legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+  .harm{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:10px}
+  .harm th,.harm td{text-align:left;padding:7px 8px;border-top:1px solid var(--line)}
+  .harm th{font-family:var(--mono);font-weight:500;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-top:0}
+  .plan{counter-reset:p;list-style:none;padding:0;margin:0}
+  .plan li{counter-increment:p;position:relative;padding:10px 0 10px 44px;border-top:1px solid var(--line)}
+  .plan li:first-child{border-top:0}
+  .plan li::before{content:counter(p);position:absolute;left:0;top:9px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:.85rem;border:1px solid var(--power);color:var(--power)}
+
+  /* ---------- first-day tour ---------- */
+  #tour{position:fixed;inset:0;z-index:25;pointer-events:none}
+  .spot{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(2,5,10,.74),0 0 0 2px var(--power);transition:all .35s cubic-bezier(.3,.8,.3,1)}
+  .tour-card{position:fixed;left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 24px));display:flex;gap:14px;align-items:flex-end;pointer-events:auto;transition:top .3s,bottom .3s}
+  .tour-card .pip{width:86px;flex:none}
+  .tour-card .bubble{flex:1}
+  .tour-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+  .tour-actions .link{color:#5b6b80}
+  .tour-actions .label{color:#5b6b80}
+
   /* ---------- timeline ---------- */
-  .timeline{padding:16px 20px 14px;margin-bottom:12px;border-radius:24px}
+  .timeline{padding:14px 20px 14px;margin-bottom:12px}
   .tl-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px}
-  .tl-top b{font-size:1.2rem;font-weight:600}
+  .tl-top b{font-size:1.25rem;font-weight:600}
   .ticks{display:grid;grid-template-columns:repeat(12,1fr);gap:5px}
-  .tick{position:relative;height:30px;border-radius:9px;display:grid;place-items:center;font-size:.78rem;font-weight:500;color:rgba(255,255,255,.75)}
-  .tick.s{background:rgba(255,194,107,.34)} .tick.n{background:rgba(120,140,210,.3)}
-  .tick.past{opacity:.45}
+  .tick{position:relative;height:30px;border-radius:8px;display:grid;place-items:center;font-family:var(--mono);font-size:.78rem;font-weight:500;color:rgba(255,255,255,.8)}
+  .tick.s{background:rgba(255,194,107,.3)} .tick.n{background:rgba(120,140,210,.3)}
+  .tick.past{opacity:.4}
   .tick.now{outline:2px solid #fff;outline-offset:2px;opacity:1;color:#fff}
-  .flag{position:absolute;top:-7px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--flare);box-shadow:0 0 10px var(--flare)}
+  .flag{position:absolute;top:-6px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--flare);box-shadow:0 0 10px var(--flare)}
 
   /* ---------- alerts ---------- */
-  .alert{margin-bottom:12px;padding:14px 18px;border-radius:20px;background:linear-gradient(90deg,rgba(255,111,79,.28),rgba(255,111,79,.08));
+  .alert{margin-bottom:12px;padding:14px 18px;border-radius:14px;background:linear-gradient(90deg,rgba(255,111,79,.24),rgba(255,111,79,.06));
          border:1px solid rgba(255,140,110,.5);box-shadow:inset 4px 0 0 var(--flare)}
-  .alert.soft{background:linear-gradient(90deg,rgba(255,194,107,.22),rgba(255,194,107,.06));border-color:rgba(255,194,107,.4);box-shadow:inset 4px 0 0 var(--power)}
+  .alert.soft{background:linear-gradient(90deg,rgba(255,194,107,.2),rgba(255,194,107,.05));border-color:rgba(255,194,107,.4);box-shadow:inset 4px 0 0 var(--power)}
   .alert b{font-weight:600}
+  .alert .label{display:block;color:inherit;opacity:.8;margin-bottom:2px}
+
+  /* ---------- Pip's advice panel ---------- */
+  .advice{display:flex;gap:14px;align-items:center;padding:12px 18px 12px 12px;margin-bottom:12px}
+  .advice .pip{width:74px;flex:none}
+  .advice .bubble{flex:1}
+  .advice .bubble.left::before{top:50%;margin-top:-9px}
+  .advice-tools{display:flex;flex-direction:column;gap:6px}
 
   /* ---------- gauges ---------- */
-  .readouts{display:grid;grid-template-columns:repeat(4,1fr) ;gap:10px;margin-bottom:12px}
-  .gauge{--c:var(--air);position:relative;padding:14px 10px 12px;text-align:center;border-radius:22px}
+  .readouts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+  .gauge{--c:var(--air);position:relative;padding:14px 10px 12px;text-align:center}
   .gauge svg{width:84px;height:84px;display:block;margin:0 auto 4px}
   .gauge circle{fill:none;stroke-width:7;stroke-linecap:round}
-  .gauge .trk{stroke:rgba(255,255,255,.12)}
+  .gauge .trk{stroke:rgba(255,255,255,.1)}
   .gauge .val{stroke:var(--c);transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dasharray .7s;filter:drop-shadow(0 0 5px var(--c))}
-  .gnum{position:absolute;top:36px;left:0;right:0;font-size:1.35rem;font-weight:600;font-variant-numeric:tabular-nums}
+  .gnum{position:absolute;top:38px;left:0;right:0;font-size:1.35rem;font-weight:600;font-variant-numeric:tabular-nums}
   .gname{font-weight:500}
   .ghint{font-size:.78rem;color:var(--muted);line-height:1.3;margin-top:2px}
+  .gauge.low{border-color:rgba(255,138,120,.55)}
   .gauge.low .gnum{color:var(--health)}
   .gauge.low .val{stroke:var(--health);filter:drop-shadow(0 0 7px var(--health))}
 
   /* ---------- power sharing ---------- */
-  .power{padding:22px 24px 20px;margin-bottom:12px}
+  .power{padding:20px 24px 20px;margin-bottom:12px}
   .power-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px}
-  .power-head .big{font-size:2.3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--power)}
-  .row{--c:var(--air);padding:14px 0;border-top:1px solid rgba(255,255,255,.1)}
+  .power-head .big{font-size:2.4rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--power)}
+  .row{--c:var(--air);padding:14px 0;border-top:1px solid var(--line)}
   .rhead{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:9px}
   .rname{font-weight:600;font-size:1.12rem}
   .rhint{font-size:.84rem;color:var(--muted)}
-  .rproj{font-size:.9rem;font-weight:500;color:var(--c);font-variant-numeric:tabular-nums}
+  .rproj{font-family:var(--mono);font-size:.84rem;font-weight:500;color:var(--c);font-variant-numeric:tabular-nums}
   .cells{display:flex;flex-wrap:wrap;gap:6px}
-  .cell{width:32px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);padding:0;transition:background .15s,box-shadow .15s,transform .1s}
-  .cell:hover:not(:disabled){background:rgba(255,255,255,.18)}
+  .cell{width:34px;height:42px;border-radius:9px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);padding:0;transition:background .15s,box-shadow .15s,transform .1s}
+  .cell:hover:not(:disabled){background:rgba(255,255,255,.16)}
   .cell:active:not(:disabled){transform:scale(.94)}
   .cell.on{background:var(--c);border-color:transparent;box-shadow:0 0 14px -2px var(--c)}
   .cell.mark{margin-right:10px;position:relative}
-  .cell.mark::after{content:"";position:absolute;right:-9px;top:4px;bottom:4px;width:2px;border-radius:2px;background:rgba(255,255,255,.4)}
-  .cell:disabled{opacity:.25;cursor:not-allowed}
-  .power-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:16px;border-top:1px solid rgba(255,255,255,.1)}
+  .cell.mark::after{content:"";position:absolute;right:-9px;top:4px;bottom:4px;width:2px;border-radius:2px;background:rgba(255,255,255,.45)}
+  .cell:disabled{opacity:.22;cursor:not-allowed}
+  .power-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line)}
   .science-score{font-size:.9rem;color:var(--muted)}
   .science-score b{display:block;font-size:1.7rem;color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
 
   /* ---------- notes ---------- */
   .notes{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
-  .notes .glass{padding:16px 20px}
-  .log p{margin:5px 0;font-size:.92rem;max-width:none}
-  .fact{border-left:3px solid var(--earth);border-radius:6px 20px 20px 6px;font-size:.92rem}
-  .fact p{max-width:none}
+  .notes .panel{padding:16px 20px}
+  .log p{margin:6px 0;font-size:.92rem;max-width:none;padding-left:12px;border-left:2px solid var(--line-strong)}
+  .log p:first-child{border-left-color:var(--power)}
+  .fact p{max-width:none;font-size:.92rem;margin-top:8px}
 
   /* ---------- end ---------- */
-  #screen-end{padding:32px}
+  #screen-end{padding:30px}
+  .end-head{display:grid;grid-template-columns:1fr 220px;gap:20px;align-items:center}
+  .end-head .pip{width:120px;margin:0 auto}
+  .end-head .bubble{margin-bottom:10px}
   .stars-row{font-size:2rem;color:var(--gold);letter-spacing:.1em;margin:4px 0 8px}
-  #end-learn{padding-left:1.1rem;max-width:56ch}
+  #end-learn{padding-left:1.1rem;max-width:58ch}
   #end-learn li{margin-bottom:6px}
-
-  .mute{position:fixed;right:14px;bottom:14px;z-index:5;padding:9px 16px;font-size:.85rem;font-weight:500;border-radius:999px}
-  .namefield{display:block;font-size:.9rem;color:var(--muted);margin:18px 0 6px}
-  #name-input{font:inherit;color:var(--text);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:13px 16px;width:min(320px,100%);margin:0 12px 12px 0}
-  #name-input::placeholder{color:rgba(238,242,247,.4)}
-  .btn2{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);border-radius:18px;padding:14px 24px;font-weight:500;font-size:1.02rem}
-  .btn2:hover{background:rgba(255,255,255,.16)}
-  .report{padding:18px 22px;margin:16px 0;border-radius:24px}
+  .report{padding:18px 22px;margin:16px 0}
   .rep-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
   .rep-name{font-size:1.55rem;font-weight:600;line-height:1.2}
   .rep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0 18px}
-  .rep-stats div{padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.07);font-size:.85rem;color:var(--muted)}
+  .rep-stats div{padding:10px 14px;border-radius:12px;border:1px solid var(--line);font-size:.85rem;color:var(--muted)}
   .rep-stats b{display:block;font-size:1.55rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
-  .storm-line{font-size:.92rem;padding:8px 0;border-top:1px solid rgba(255,255,255,.1)}
+  .storm-line{font-size:.92rem;padding:8px 0;border-top:1px solid var(--line)}
   .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
-  footer{margin-top:26px;font-size:.78rem;color:var(--muted);max-width:70ch}
+  footer{margin-top:26px;font-size:.78rem;color:var(--muted);max-width:76ch}
+  footer p{max-width:none;margin-bottom:6px}
 
-  @media (max-width:720px){
+  @media (max-width:760px){
+    #screen-title{grid-template-columns:1fr;padding:24px 20px}
+    .title-guide{flex-direction:row-reverse;align-items:flex-end;order:-1}
+    .title-guide .pip{width:92px;flex:none}
+    .title-guide .bubble.down::before{display:none}
+    .brief{padding:18px 16px 16px}
+    .brief-body{grid-template-columns:1fr;gap:14px;min-height:0}
+    .brief-guide{flex-direction:row;align-items:flex-end}
+    .brief-guide .pip{width:80px;flex:none}
+    .brief-guide .bubble{font-size:.95rem}
+    .brief-main h2{font-size:1.3rem}
+    .meter{grid-template-columns:90px 1fr}
+    .meter em{grid-column:1/-1;min-width:0}
+    .sysrow{grid-template-columns:1fr}
     .readouts{grid-template-columns:repeat(2,1fr)}
     .notes{grid-template-columns:1fr}
     .power{padding:18px 16px}
-    #screen-title,#screen-end{padding:24px 20px}
-    .cell{width:28px;height:38px}
+    #screen-end{padding:24px 20px}
+    .end-head{grid-template-columns:1fr}
+    .end-head > div:last-child{order:-1}
+    .cell{width:30px;height:40px}
     .power-head>div:last-child{text-align:left!important}
+    .advice .pip{width:56px}
+    .mission-id{display:none}
+    .tour-card .pip{width:64px}
+    .scene-wrap .scene-tag:not(.r){display:none}
+    .brief-top .label:first-child{font-size:0;letter-spacing:0}
+    .brief-top .label:first-child::after{content:"Mission briefing";font-size:.72rem;letter-spacing:.14em}
+    .kbd{display:none}
   }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
@@ -178,16 +333,26 @@
 <div id="sky" aria-hidden="true"><canvas id="stars"></canvas><div class="earth"></div></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<button class="mute glass sm" id="btn-mute" aria-pressed="true">Sound on</button>
-
 <main class="app">
 
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Moon Base Mission<small>Junior Astronaut Trainer</small></span></div>
+    <div class="top-actions">
+      <span class="mission-id" id="mission-id"></span>
+      <button class="btn2 sm" id="btn-help">How to play</button>
+      <button class="btn2 sm" id="btn-mute" aria-pressed="true">Sound on</button>
+    </div>
+  </header>
+
   <!-- The base scene. The shield bubble gets brighter or fainter with your shield level. -->
-  <div class="scene-wrap glass" id="scene">
+  <div class="scene-wrap panel" id="scene">
+    <span class="label scene-tag">Lunar south pole region / base camera</span>
+    <span class="label scene-tag r" id="scene-clock">Sunlight</span>
     <svg id="scene-svg" viewBox="0 0 900 300" role="img" aria-label="A moon base under a protective radiation shield, with the Sun in the corner">
       <defs>
         <clipPath id="aboveGround"><rect x="0" y="0" width="900" height="227"/></clipPath>
-        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6d1c7"/><stop offset="1" stop-color="#4f4f55"/></linearGradient>
+        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfcabf"/><stop offset="1" stop-color="#3f4046"/></linearGradient>
+        <linearGradient id="ridge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d8b86"/><stop offset="1" stop-color="#4a4a50"/></linearGradient>
         <radialGradient id="domeGrad" cx=".38" cy=".25" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#9db7d3" stop-opacity=".45"/></radialGradient>
         <radialGradient id="bubGrad" cx=".5" cy=".6" r=".6"><stop offset="0" stop-color="#a8e6b0" stop-opacity=".02"/><stop offset=".8" stop-color="#a8e6b0" stop-opacity=".12"/><stop offset="1" stop-color="#a8e6b0" stop-opacity=".4"/></radialGradient>
         <radialGradient id="sunGrad"><stop offset="0" stop-color="#fff6d6"/><stop offset=".5" stop-color="#ffc26b"/><stop offset="1" stop-color="#ffc26b" stop-opacity="0"/></radialGradient>
@@ -195,6 +360,8 @@
       <!-- Sun -->
       <circle id="sun-glow" cx="810" cy="56" r="46" fill="url(#sunGrad)"/>
       <circle cx="810" cy="56" r="17" fill="#fff3cc"/>
+      <!-- distant ridge -->
+      <path d="M0 214 L60 196 L120 204 L190 184 L250 200 L330 190 L420 204 L520 186 L600 198 L690 178 L760 196 L830 188 L900 200 V240 H0Z" fill="url(#ridge)" opacity=".55"/>
       <!-- ground -->
       <path d="M0 232 Q150 204 300 221 T600 220 T900 212 V300 H0Z" fill="url(#ground)"/>
       <ellipse cx="150" cy="262" rx="46" ry="8" fill="#000" opacity=".2"/>
@@ -204,15 +371,23 @@
       <!-- solar panels -->
       <g>
         <path d="M205 214 L285 206 L292 228 L196 232Z" fill="#294a7a"/><path d="M205 214 L285 206 L292 228 L196 232Z" fill="#ffc26b" class="panel-glow" opacity=".5"/>
+        <path d="M228 211.5 L231 230.5 M252 209 L256 229.5 M200 222 L289 216" stroke="#0f2340" stroke-width="1.2" opacity=".6"/>
         <rect x="243" y="228" width="4" height="12" fill="#8a8a90"/>
         <path d="M610 206 L690 214 L700 232 L604 228Z" fill="#294a7a"/><path d="M610 206 L690 214 L700 232 L604 228Z" fill="#ffc26b" class="panel-glow" opacity=".5"/>
+        <path d="M637 208.5 L634 229 M662 211 L662 230 M607 217 L695 223" stroke="#0f2340" stroke-width="1.2" opacity=".6"/>
         <rect x="652" y="228" width="4" height="12" fill="#8a8a90"/>
       </g>
+      <!-- antenna mast -->
+      <line x1="560" y1="248" x2="560" y2="176" stroke="#9aa3ae" stroke-width="2"/>
+      <path d="M548 186 Q560 172 572 186" fill="none" stroke="#c9d0d8" stroke-width="2"/>
+      <circle class="beacon" cx="560" cy="174" r="3" fill="#ff6f4f"/>
       <!-- base modules and dome -->
       <rect x="370" y="202" width="42" height="21" rx="6" fill="#aab4c3"/><rect x="488" y="202" width="42" height="21" rx="6" fill="#aab4c3"/>
       <rect x="380" y="209" width="9" height="6" rx="2" fill="#ffd98a"/><rect x="511" y="209" width="9" height="6" rx="2" fill="#ffd98a"/>
       <path d="M408 223 A42 42 0 0 1 492 223Z" fill="url(#domeGrad)" stroke="#e9f0f8" stroke-opacity=".6"/>
       <rect x="440" y="196" width="20" height="27" rx="4" fill="#ffd98a" opacity=".85"/>
+      <!-- rover -->
+      <g transform="translate(300 236)"><rect x="0" y="0" width="34" height="10" rx="3" fill="#c8ced6"/><rect x="20" y="-7" width="10" height="8" rx="2" fill="#8fa2b8"/><circle cx="7" cy="12" r="4.5" fill="#3a3d44"/><circle cx="27" cy="12" r="4.5" fill="#3a3d44"/></g>
       <!-- shield bubble -->
       <circle id="bubble" clip-path="url(#aboveGround)" cx="450" cy="224" r="120" fill="url(#bubGrad)" stroke="#a8e6b0" stroke-width="2"/>
       <!-- flare rays (only visible during a storm) -->
@@ -227,19 +402,33 @@
   </div>
 
   <!-- ============ TITLE ============ -->
-  <section id="screen-title" class="glass">
-    <h1>Moon Base Mission</h1>
-    <p class="lead">Four astronauts are counting on you. Share the base's power between air, radiation shield and science, and bring everyone through twelve days on the Moon.</p>
-    <p class="muted">There is never enough power for everything. The solar storms in this game come from real flares recorded by NASA.</p>
-    <label class="namefield" for="name-input">Your name or team name (it goes on your mission report)</label>
-    <input id="name-input" type="text" maxlength="24" placeholder="Mission Commander" autocomplete="off">
-    <button class="cta" id="btn-start">Start mission</button>
-    <div class="status"><span class="dot" id="data-dot"></span><span id="data-status">Checking NASA space weather data...</span></div>
+  <section id="screen-title" class="panel hud">
+    <div>
+      <span class="label">NASA Space Apps 2026 / Junior Astronaut Mission Trainer</span>
+      <h1>Moon Base Mission</h1>
+      <p class="lead">Four astronauts. Twelve days on the Moon. Never enough power for everything. Can you keep the crew safe?</p>
+      <div class="facts-strip">
+        <div><b>12</b><span>days to survive</span></div>
+        <div><b>3</b><span>solar storms from real NASA flares</span></div>
+        <div><b>1</b><span>long lunar night</span></div>
+      </div>
+      <label class="namefield" for="name-input">Your name or team name (it goes on your mission report)</label>
+      <input id="name-input" type="text" maxlength="24" placeholder="Mission Commander" autocomplete="off">
+      <div class="start-row">
+        <button class="cta" id="btn-start">Start training</button>
+        <button class="btn2" id="btn-skip">I know how to play</button>
+      </div>
+      <div class="status"><span class="dot" id="data-dot"></span><span id="data-status">Checking NASA space weather data...</span></div>
+    </div>
+    <div class="title-guide">
+      <div class="bubble down"><span class="who">Pip / Training officer</span>Hi, I'm Pip. Before your first mission I'll show you how everything works. It takes about two minutes.</div>
+      <div id="title-pip"></div>
+    </div>
   </section>
 
   <!-- ============ GAME ============ -->
   <section id="screen-game" hidden>
-    <div class="timeline glass">
+    <div class="timeline panel" id="timeline">
       <div class="tl-top"><b id="tl-label">Day 1 of 12</b><span class="muted small" id="tl-note"></span></div>
       <div class="ticks" id="tl"></div>
       <div class="muted small" id="tl-sub" style="margin-top:9px"></div>
@@ -249,9 +438,14 @@
 
     <div class="readouts" id="gauges"></div>
 
-    <div class="power glass">
+    <div class="advice panel" id="advice">
+      <div id="advice-pip"></div>
+      <div class="bubble left" id="advice-text" aria-live="polite"></div>
+    </div>
+
+    <div class="power panel hud" id="power">
       <div class="power-head">
-        <div><h2>Share the power</h2><div class="muted small" id="power-sub"></div></div>
+        <div><span class="label">Power distribution</span><h2 style="font-size:1.3rem;margin-top:2px">Share the power</h2><div class="muted small" id="power-sub"></div></div>
         <div style="text-align:right"><span class="big" id="power-left">0</span><div class="muted small">power cells left to place</div></div>
       </div>
       <div id="rows"></div>
@@ -263,16 +457,25 @@
     </div>
 
     <div class="notes">
-      <div class="glass sm log" aria-live="polite"><h2>Mission log</h2><div id="log"></div></div>
-      <div class="glass sm fact" id="fact-card" hidden><p id="fact"></p></div>
+      <div class="panel log" aria-live="polite"><span class="label">Mission log</span><div id="log"><p class="muted">Nothing yet. Place your power cells, then press End the day.</p></div></div>
+      <div class="panel fact" id="fact-card" hidden><span class="label">Space fact</span><p id="fact"></p></div>
     </div>
   </section>
 
   <!-- ============ END ============ -->
-  <section id="screen-end" class="glass" hidden>
-    <h1 id="end-title"></h1>
-    <p id="end-text"></p>
-    <div class="report glass sm" id="report">
+  <section id="screen-end" class="panel hud" hidden>
+    <div class="end-head">
+      <div>
+        <span class="label">Mission debrief</span>
+        <h1 id="end-title"></h1>
+        <p id="end-text"></p>
+      </div>
+      <div>
+        <div class="bubble down" id="end-say"></div>
+        <div id="end-pip"></div>
+      </div>
+    </div>
+    <div class="report panel" id="report">
       <div class="rep-top">
         <div><div class="rep-name" id="rep-name"></div><div class="muted small" id="rep-sub"></div></div>
         <div class="stars-row" id="end-stars" aria-hidden="true"></div>
@@ -291,11 +494,48 @@
   </section>
 
   <footer>
-    Space weather data: NASA DONKI (Space Weather Database Of Notifications, Knowledge, Information) through api.nasa.gov.
-    If live data can't be reached, the game uses real flares from 2024 and labels them as archived.
-    This is a simplified learning game, not a real mission simulator.
+    <p>Space weather data: NASA DONKI (Space Weather Database Of Notifications, Knowledge, Information) through api.nasa.gov.
+    If live data can't be reached, the game uses real flares from 2024 and labels them as archived.</p>
+    <p>Background for some space facts: NASA Open Science Data Repository (OSDR), RadLab (ISS radiation dosimetry) and the Canadian Space Agency's food production on the Moon toolkit.</p>
+    <p>This is a simplified learning game, not a real mission simulator. NASA does not endorse this project.</p>
   </footer>
 </main>
+
+<!-- ============ BRIEFING: how to play ============ -->
+<div class="overlay" id="brief" hidden role="dialog" aria-modal="true" aria-labelledby="brief-title">
+  <div class="brief panel hud">
+    <div class="brief-top">
+      <span class="label">Astronaut training / Mission briefing</span>
+      <span class="label" id="brief-count"></span>
+    </div>
+    <div class="progress"><i id="brief-bar"></i></div>
+    <div class="brief-body">
+      <div class="brief-guide"><div id="brief-pip"></div><div class="bubble" id="brief-say"></div></div>
+      <div class="brief-main"><h2 id="brief-title" tabindex="-1"></h2><div id="brief-visual"></div></div>
+    </div>
+    <div class="brief-foot">
+      <span class="kbd">Use the arrow keys or the buttons</span>
+      <div class="btns">
+        <button class="link" id="brief-skip">Skip briefing</button>
+        <button class="btn2" id="brief-back">Back</button>
+        <button class="cta" id="brief-next">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOUR: points at each part of the game on day 1 ============ -->
+<div id="tour" hidden>
+  <div class="spot" id="spot"></div>
+  <div class="tour-card" id="tour-card">
+    <div id="tour-pip"></div>
+    <div class="bubble">
+      <span class="who" id="tour-step"></span>
+      <div id="tour-text"></div>
+      <div class="tour-actions"><button class="link" id="tour-skip">Skip tour</button><button class="cta sm" id="tour-next">Next</button></div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* =====================================================================
@@ -303,6 +543,7 @@
    Part 1: GAME LOGIC  (only numbers and rules, no screen code)
    Part 2: NASA DATA   (fetch real flares from DONKI)
    Part 3: SCREEN      (draw things, handle clicks)
+   Part 4: PIP         (the guide: briefing, tour and daily advice)
    ===================================================================== */
 
 // <LOGIC>
@@ -330,13 +571,16 @@ const ARCHIVED_FLARES = [
 ];
 
 const FACTS = [
-  "A night on the Moon lasts about 14 Earth days. Solar panels make no power in the dark, so bases need batteries or other power sources!",
+  "A night on the Moon lasts about 14 Earth days. Solar panels make no power in the dark, so bases need batteries or other power sources.",
   "Solar flares are giant bursts of energy from the Sun. They are ranked A, B, C, M and X, and each letter is 10 times stronger than the one before.",
   "The Moon has almost no atmosphere, so nothing blocks space radiation the way Earth's air does. That's why shielding matters so much.",
+  "Instruments on the International Space Station measure the radiation dose astronauts receive. NASA's RadLab database shares these real measurements.",
   "The Sun goes through an activity cycle of about 11 years. Sometimes it has lots of flares, sometimes very few.",
-  "On the International Space Station, astronauts recycle water – even from sweat – and make oxygen from water.",
+  "In low gravity, astronauts' bones and muscles carry less weight, so they can get weaker. NASA's Open Science Data Repository holds many studies on this.",
+  "On the International Space Station, astronauts recycle water, even from sweat, and make oxygen from water.",
+  "Growing food on the Moon is a real research goal. The Canadian Space Agency has activities about producing food on the Moon and in remote places on Earth.",
   "NASA's Artemis program plans to send astronauts back to the Moon, so planners study space weather to keep crews safe.",
-  "Mission planners can't make everything perfect. They share limited power, weight and money between many needs – just like you!"
+  "Mission planners can't make everything perfect. They share limited power, weight and money between many needs, just like you."
 ];
 
 // Turn a flare class like "M5.3" into a game severity: 1 small, 2 medium, 3 big
@@ -513,7 +757,7 @@ let G = null, lastFocus = null, factIndex = 0, playerName = 'Mission Commander';
 /* ---------- Sound: made with the browser's own tone generator, so there are no sound files ---------- */
 const Sound = {
   ctx: null, on: true,
-  init() {                       // browsers only allow sound after a click, so we start it on "Start mission"
+  init() {                       // browsers only allow sound after a click, so we start it on the first button press
     try {
       if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -541,7 +785,10 @@ const Sound = {
   alert()  { [0, 0.24, 0.48].forEach((d, i) => this.tone(i === 1 ? 880 : 660, 0.18, 'square', 0.035, d)); },
   storm()  { this.rumble(1.8, 0.18); this.tone(95, 1.3, 'sawtooth', 0.05, 0, 0.5); },
   win()    { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.07, i * 0.15)); },
-  lose()   { [392, 330, 262].forEach((f, i) => this.tone(f, 0.4, 'sine', 0.07, i * 0.22)); }
+  lose()   { [392, 330, 262].forEach((f, i) => this.tone(f, 0.4, 'sine', 0.07, i * 0.22)); },
+  // Pip's "voice": two or three soft radio chirps
+  blip()   { const b = 700 + Math.random() * 200; [0, 0.07, 0.14].slice(0, 2 + (Math.random() < .5 ? 1 : 0)).forEach((d, i) => this.tone(b * (1 + i * 0.12), 0.06, 'sine', 0.035, d)); },
+  click()  { this.tone(620, 0.04, 'triangle', 0.03); }
 };
 const $ = id => document.getElementById(id);
 
@@ -576,7 +823,7 @@ function drawStars() {
 
 function buildGauges() {
   $('gauges').innerHTML = GAUGES.map(g => `
-    <div class="gauge glass sm" id="g-${g.key}" style="--c:var(${g.color})">
+    <div class="gauge panel" id="g-${g.key}" style="--c:var(${g.color})">
       <svg viewBox="0 0 80 80" aria-hidden="true"><circle class="trk" cx="40" cy="40" r="32"/><circle class="val" id="ring-${g.key}" cx="40" cy="40" r="32" pathLength="100" style="stroke-dasharray:0 100"/></svg>
       <div class="gnum" id="num-${g.key}">0</div>
       <div class="gname">${g.name}</div>
@@ -605,19 +852,20 @@ function updateTimeline() {
     const cls = ['tick', night ? 'n' : 's', d < G.day ? 'past' : '', d === G.day ? 'now' : ''].join(' ');
     return `<div class="${cls}" title="Day ${d}${night ? ', lunar night' : ', sunlight'}">${flag}${d}</div>`;
   }).join('');
+  $('scene-clock').textContent = `Day ${G.day} / ${isNight(G) ? 'Lunar night' : 'Sunlight'}`;
 }
 
 function updateAlerts() {
   const box = $('alerts'); box.innerHTML = '';
   const ev = G.schedule.events[G.day];
   if (ev && ev.type === 'dust') {
-    box.innerHTML += `<div class="alert soft"><b>Moon dust on the panels.</b> You have 1 less power today.</div>`;
+    box.innerHTML += `<div class="alert soft"><span class="label">Panel report</span><b>Moon dust on the panels.</b> You have 1 less power today.</div>`;
   }
   warningsFor(G).forEach(w => {
     const size = ['', 'small', 'medium', 'big'][w.ev.severity];
     const when = w.level === 'hit' ? 'tonight' : 'tomorrow night';
     const origin = w.ev.source === 'live' ? 'a flare NASA recorded recently' : 'a real flare NASA recorded in the past';
-    box.innerHTML += `<div class="alert"><b>Space weather alert.</b> A ${size} radiation storm will reach the base ${when}. It is based on ${origin}: class ${w.ev.cls}, ${w.ev.date}. A stronger shield means less harm to the crew.</div>`;
+    box.innerHTML += `<div class="alert"><span class="label">Space weather alert</span><b>A ${size} radiation storm will reach the base ${when}.</b> It is based on ${origin}: class ${w.ev.cls}, ${w.ev.date}. A stronger shield means less harm to the crew.</div>`;
   });
 }
 
@@ -668,11 +916,12 @@ function updateScene() {
 
 function render() {
   document.body.classList.toggle('night', isNight(G));
-  updateTimeline(); updateAlerts(); updateGauges(); updatePower(); updateScene();
+  updateTimeline(); updateAlerts(); updateGauges(); updatePower(); updateScene(); updateAdvice();
 }
 
 function addLog(lines) {
   const box = $('log');
+  if (box.querySelector('.muted')) box.innerHTML = '';
   box.innerHTML = lines.map(t => `<p>${t}</p>`).join('') + box.innerHTML;
 }
 
@@ -684,14 +933,15 @@ function stormEffect() {
 
 function startGame() {
   G = newGame(flareSource.flares);
-  lastFocus = null; factIndex = 0;
-  $('log').innerHTML = ''; $('fact-card').hidden = true;
+  lastFocus = null; factIndex = 0; lastAdvice = '';
+  $('log').innerHTML = '<p class="muted">Nothing yet. Place your power cells, then press End the day.</p>';
+  $('fact-card').hidden = true;
+  $('mission-id').textContent = 'Commander: ' + playerName;
   show('screen-game'); render();
   window.scrollTo && window.scrollTo(0, 0);
 }
 
 function reportData() {
-  const lost = !G.won;
   return {
     name: playerName,
     sub: G.won ? 'Completed twelve days on the Moon' : `Mission ended on day ${G.day}`,
@@ -709,16 +959,26 @@ function reportData() {
 function finish() {
   show('screen-end');
   const stars = rating(G), R = reportData();
+  let say, mood;
   if (G.won) {
     $('end-title').textContent = 'Mission complete';
     $('end-text').textContent = 'All four astronauts made it through twelve days on the Moon.';
+    mood = 'cheer';
+    say = stars === 3 ? 'Outstanding work, Commander. Safe crew and lots of science. That is exactly what mission planners hope for.'
+        : stars === 2 ? 'Great job. Everyone is home safe. Next time, try putting spare sunny-day power into science.'
+        : 'You kept the crew alive, and that comes first. Next time, look for days with spare power to earn more science.';
   } else {
     const air = G.reason === 'oxygen';
     $('end-title').textContent = air ? 'The base ran out of air' : 'The crew took too much radiation';
     $('end-text').textContent = air
       ? `Air ran out on day ${G.day}. Life support needs at least two power cells every day. Real engineers learn from problems like this too.`
       : `Radiation caught the crew on day ${G.day}. Raise the shield before a space weather alert arrives. Real engineers learn from problems like this too.`;
+    mood = 'worried';
+    say = air ? 'Tip from me: keep 2 cells on life support every day, and save battery power before the lunar night starts. Want to try again?'
+              : 'Tip from me: when you see a red alert, spend a day or two building the shield before the storm arrives. Want to try again?';
   }
+  $('end-pip').innerHTML = pipSVG(mood);
+  $('end-say').innerHTML = `<span class="who">Pip / Debrief</span>${say}`;
   $('end-stars').textContent = G.won ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : '';
   $('rep-name').textContent = R.name;
   $('rep-sub').textContent = R.sub;
@@ -731,6 +991,7 @@ function finish() {
     'Solar power disappears during the lunar night, so planning ahead and batteries matter.',
     'Radiation from the Sun changes with space weather, so shielding is a real trade-off.'
   ].map(t => `<li>${t}</li>`).join('');
+  window.scrollTo && window.scrollTo(0, 0);
 }
 
 // Draw the mission report onto a canvas and download it as a PNG
@@ -738,11 +999,12 @@ function saveReport() {
   const R = reportData(), W = 1000, H = 440 + Math.max(1, R.storms.length) * 62;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d'), F = 'Lexend, "Segoe UI", system-ui, sans-serif';
-  const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0a1424'); bg.addColorStop(1, '#16304a');
+  const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#04070d'); bg.addColorStop(1, '#0d1a2b');
   x.fillStyle = bg; x.fillRect(0, 0, W, H);
   x.fillStyle = '#ffffff';
   for (let i = 0; i < 90; i++) { x.globalAlpha = 0.2 + Math.random() * 0.6; x.fillRect(Math.random() * W, Math.random() * H, 1.6, 1.6); }
   x.globalAlpha = 1;
+  x.fillStyle = '#ffc26b'; x.fillRect(56, 40, 40, 3);
   x.fillStyle = '#eef2f7'; x.font = `700 46px ${F}`; x.fillText('Moon Base Mission report', 56, 90);
   x.font = `600 34px ${F}`; x.fillText(R.name, 56, 150);
   x.fillStyle = 'rgba(238,242,247,.65)'; x.font = `300 24px ${F}`; x.fillText(R.sub, 56, 188);
@@ -768,11 +1030,239 @@ function saveReport() {
   });
 }
 
+/* ======================= PART 4: PIP, THE GUIDE ======================= */
+// Pip is drawn with SVG, so there are no image files. mood: 'happy' | 'worried' | 'cheer', plus 'wave'
+let pipCount = 0;
+function pipSVG(mood = 'happy', extra = '') {
+  const u = 'pip' + (pipCount++);
+  return `<svg class="pip ${mood} ${extra}" viewBox="0 0 120 150" aria-hidden="true">
+  <defs>
+    <radialGradient id="${u}s" cx=".35" cy=".28" r=".85"><stop offset="0" stop-color="#ffffff"/><stop offset=".65" stop-color="#e2e7ee"/><stop offset="1" stop-color="#b4bfcd"/></radialGradient>
+    <linearGradient id="${u}v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#21426a"/><stop offset="1" stop-color="#0a1626"/></linearGradient>
+  </defs>
+  <ellipse cx="60" cy="146" rx="26" ry="3.5" fill="#000" opacity=".25"/>
+  <g class="pip-float">
+    <rect x="30" y="86" width="60" height="38" rx="12" fill="#8e9aab"/>
+    <rect x="44" y="116" width="13" height="20" rx="6" fill="#dde3ea"/><rect x="63" y="116" width="13" height="20" rx="6" fill="#dde3ea"/>
+    <rect x="42" y="131" width="17" height="9" rx="4.5" fill="#5f6c7e"/><rect x="61" y="131" width="17" height="9" rx="4.5" fill="#5f6c7e"/>
+    <rect x="36" y="84" width="48" height="42" rx="16" fill="url(#${u}s)"/>
+    <rect x="47" y="97" width="26" height="14" rx="4" fill="#26364b"/>
+    <circle cx="53" cy="104" r="2.5" fill="#8fd3ff"/><circle cx="60" cy="104" r="2.5" fill="#a8e6b0"/><circle cx="67" cy="104" r="2.5" fill="#ffc26b"/>
+    <rect x="35" y="118" width="50" height="5" rx="2.5" fill="#ffc26b" opacity=".85"/>
+    <rect x="24" y="88" width="14" height="28" rx="7" fill="#e3e8ee"/><circle cx="31" cy="117" r="6" fill="#5f6c7e"/>
+    <g class="pip-arm-r"><rect x="82" y="88" width="14" height="28" rx="7" fill="#e3e8ee"/><circle cx="89" cy="117" r="6" fill="#5f6c7e"/></g>
+    <line x1="60" y1="14" x2="60" y2="5" stroke="#b4bfcd" stroke-width="2.5" stroke-linecap="round"/>
+    <circle class="pip-bulb" cx="60" cy="5" r="4" fill="#ffc26b"/>
+    <rect x="15" y="44" width="9" height="18" rx="4.5" fill="#b4bfcd"/><rect x="96" y="44" width="9" height="18" rx="4.5" fill="#b4bfcd"/>
+    <circle cx="60" cy="52" r="40" fill="url(#${u}s)"/>
+    <ellipse cx="60" cy="56" rx="29.5" ry="24.5" fill="url(#${u}v)" stroke="#5f6c7e" stroke-width="2"/>
+    <g class="pip-eyes"><ellipse cx="50" cy="54" rx="4.2" ry="5.4" fill="#eaf6ff"/><ellipse cx="70" cy="54" rx="4.2" ry="5.4" fill="#eaf6ff"/>
+      <circle cx="51.4" cy="52.2" r="1.4" fill="#0a1626"/><circle cx="71.4" cy="52.2" r="1.4" fill="#0a1626"/></g>
+    <ellipse cx="43" cy="64" rx="4" ry="2.6" fill="#ff8a78" opacity=".45"/><ellipse cx="77" cy="64" rx="4" ry="2.6" fill="#ff8a78" opacity=".45"/>
+    <path class="m-happy" d="M53 65 Q60 71.5 67 65" stroke="#eaf6ff" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path class="m-worried" d="M54 69 Q60 64.5 66 69" stroke="#eaf6ff" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path class="m-cheer" d="M52.5 64 Q60 74 67.5 64 Z" fill="#eaf6ff"/>
+    <path d="M37 46 Q42 36 54 33" stroke="#fff" stroke-opacity=".55" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="80" cy="66" r="2" fill="#fff" opacity=".35"/>
+  </g></svg>`;
+}
+
+/* ---------- Pip's daily advice. It looks at your plan and warns you before you press End the day. ---------- */
+let lastAdvice = '';
+function adviceFor(g) {
+  const ev = g.schedule.events[g.day], next = g.schedule.events[g.day + 1];
+  const airTonight = Math.min(100, g.oxygen + g.alloc.life * CONFIG.OXY_PER_UNIT - CONFIG.OXY_DRAIN);
+  const shieldTonight = Math.max(0, Math.min(100, g.shield + g.alloc.shield * CONFIG.SHIELD_PER_UNIT - CONFIG.SHIELD_DECAY));
+  const left = spendable(g) - spent(g);
+  const nightIn = g.schedule.sunnyDays - g.day;   // days until the last sunny day
+
+  if (airTonight <= 0) return ['worried', `<b>Careful!</b> With this plan the air runs out tonight. Put more cells on life support.`];
+  if (ev && ev.type === 'storm') {
+    const harm = Math.round(CONFIG.STORM_DAMAGE[ev.severity] * (1 - shieldTonight / 100));
+    return shieldTonight >= 50
+      ? ['happy', `The storm hits tonight. Your shield will be at <b>${shieldTonight}%</b>, so the crew loses about <b>${harm}</b> health. Nice and safe.`]
+      : ['worried', `The storm hits tonight! With the shield at <b>${shieldTonight}%</b>, the crew would lose about <b>${harm}</b> health. Every extra shield cell helps.`];
+  }
+  if (airTonight < 30) return ['worried', `Air will only be <b>${airTonight}</b> tonight. Two cells on life support keep it steady. Three make it go up.`];
+  if (next && next.type === 'storm') return ['worried', `Space weather alert for tomorrow night. Start building the shield <b>today</b>, so it is strong in time.`];
+  if (ev && ev.type === 'dust') return ['happy', `Dust on the panels means 1 less power today. Keep the basics first: 2 on life support, 1 on the shield.`];
+  if (!isNight(g) && nightIn === 0) return ['worried', `This is the <b>last sunny day</b>. From tomorrow the panels give only 2 power. Leave some cells unplaced to fill the battery.`];
+  if (!isNight(g) && nightIn <= 2) return ['happy', `The lunar night starts after day ${g.schedule.sunnyDays}. Try to save a few cells in the battery before then.`];
+  if (left > CONFIG.BATTERY_MAX) return ['happy', `The battery is full, so unplaced power will be wasted. Put the extra cells on science or the shield.`];
+  if (isNight(g)) return ['happy', `It's the lunar night. You need 3 cells a day to stay steady (2 air, 1 shield), but the panels give only 2. The battery covers the gap.`];
+  if (g.day === 1) return ['happy', `A good start: <b>2</b> on life support and <b>1</b> on the shield keeps the base steady. Spare cells can go to science or the battery.`];
+  if (g.alloc.science === 0 && left >= 1 && g.battery >= 4) return ['happy', `Air and shield look fine, and the battery has power saved. This is a good day to earn some science points.`];
+  return ['happy', `Looking good, Commander. Check each row's "tonight" number before you end the day.`];
+}
+
+function updateAdvice() {
+  const [mood, text] = adviceFor(G);
+  if (text === lastAdvice) return;
+  const changed = lastAdvice !== '';
+  lastAdvice = text;
+  $('advice-pip').innerHTML = pipSVG(mood);
+  const b = $('advice-text');
+  b.innerHTML = `<span class="who">Pip / Advice for day ${G.day}</span>${text}`;
+  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  if (changed) Sound.blip();
+}
+
+/* ---------- The briefing: how to play, one step at a time ---------- */
+const sw = (c, n, on, mark) => Array.from({ length: n }, (_, i) => `<i class="${i < on ? 'on' : ''} ${i + 1 === mark ? 'mark' : ''}" style="--c:var(${c})"></i>`).join('');
+const BRIEF = [
+  { title: 'Your mission',
+    mood: 'happy', wave: true,
+    say: "Welcome, Commander! I'm <b>Pip</b>. You are in charge of a small base on the Moon. Your job is to keep the crew safe.",
+    vis: () => `<div class="bignums">
+        <div><b>4</b><span>astronauts live in your base</span></div>
+        <div><b>12</b><span>days you need to survive</span></div>
+        <div><b>1</b><span>decision every day: how to share the power</span></div>
+      </div>
+      <div class="vis" style="margin-top:12px"><p style="margin:0">Each day you decide where the base's power goes. Then you press <b>End the day</b> and see what happens. That's the whole game. The tricky part is that there is never enough power for everything.</p></div>` },
+  { title: 'Watch these four numbers',
+    mood: 'worried',
+    say: "These readings show how your base is doing. Keep an eye on <b>Air</b> and <b>Crew health</b> most of all.",
+    vis: () => `<div class="vis meters">
+        <div class="meter"><span>Air</span><div class="bar"><i style="width:80%;background:var(--air)"></i></div><em>The crew breathes 20 every day</em></div>
+        <div class="meter"><span>Shield</span><div class="bar"><i style="width:40%;background:var(--shield)"></i></div><em>Blocks radiation, wears down 8 a day</em></div>
+        <div class="meter"><span>Battery</span><div class="bar"><i style="width:25%;background:var(--power)"></i></div><em>Saved power for later, up to 8</em></div>
+        <div class="meter"><span>Crew health</span><div class="bar"><i style="width:100%;background:var(--health)"></i></div><em>Lost in storms, never heals</em></div>
+      </div>
+      <div class="lose"><b>The mission ends early</b> if Air or Crew health reaches 0.</div>` },
+  { title: 'Placing power cells',
+    mood: 'happy',
+    say: "Each day the solar panels give you a few <b>power cells</b>. You place them by tapping boxes. Try it here!",
+    vis: () => `<div class="vis"><span class="label">Practice: you have 5 power cells</span>
+        <div class="mini-cells" id="demo" style="margin-top:10px;--c:var(--air)"></div>
+        <div class="try-out" id="demo-out">Tap a box to place a power cell.</div></div>
+      <div class="vis small muted">Tap a box further along to fill up to it. Tap the last filled box to take one back. You can change your mind as often as you like until you press <b>End the day</b>.</div>` },
+  { title: 'Three places to put power',
+    mood: 'happy',
+    say: "Every cell goes to one of three systems. See the <b>small white line</b>? That's how many cells keep a system steady.",
+    vis: () => `<div class="vis">
+        <div class="sysrow"><div><b style="color:var(--air)">Life support</b><span>makes air</span></div><div class="mini-cells">${sw('--air', 5, 2, 2)}<small>2 cells = air stays the same</small></div></div>
+        <div class="sysrow"><div><b style="color:var(--shield)">Radiation shield</b><span>protects from storms</span></div><div class="mini-cells">${sw('--shield', 5, 1, 1)}<small>1 cell = shield stays the same</small></div></div>
+        <div class="sysrow"><div><b style="color:var(--gold)">Science lab</b><span>earns points</span></div><div class="mini-cells">${sw('--gold', 5, 2, 0)}<small>+10 points per cell</small></div></div>
+      </div>
+      <div class="vis small muted">Fewer cells than the line means that number goes down tonight. More means it goes up. Each row also tells you exactly what will happen tonight.</div>` },
+  { title: 'Day, night and the battery',
+    mood: 'worried',
+    say: "A night on the Moon lasts about two Earth weeks! When it gets dark, the panels make much less power. So save some during the sunny days.",
+    vis: () => `<div class="vis">
+        <div class="tl-demo">${Array.from({ length: 12 }, (_, i) => `<i style="background:${i < 7 ? 'rgba(255,194,107,.32)' : 'rgba(120,140,210,.32)'}">${i + 1}</i>`).join('')}</div>
+        <div class="legend"><span style="--c:rgba(255,194,107,.7)">Sunlight: 5 power a day</span><span style="--c:rgba(120,140,210,.8)">Lunar night: 2 power a day</span></div>
+      </div>
+      <div class="vis"><p style="margin:0">Any cells you <b>don't place</b> go into the battery (up to 8). Tomorrow you can spend them. At night you need 3 cells a day to stay steady but the panels give only 2, so a full battery is your best friend.</p></div>` },
+  { title: 'Solar storms',
+    mood: 'worried',
+    say: "Three times during the mission, the Sun will send a radiation storm. Each one is based on a <b>real flare</b> recorded by NASA. You always get a warning the day before.",
+    vis: () => `<div class="alert" style="margin:0 0 10px"><span class="label">Space weather alert (example)</span><b>A big radiation storm will reach the base tomorrow night.</b> Class X flare. A stronger shield means less harm.</div>
+      <div class="vis"><span class="label">How much crew health a storm takes</span>
+        <table class="harm"><tr><th>Storm</th><th>Shield 0%</th><th>Shield 50%</th><th>Shield 80%</th></tr>
+          <tr><td>Small (class C)</td><td>20</td><td>10</td><td>4</td></tr>
+          <tr><td>Medium (class M)</td><td>40</td><td>20</td><td>8</td></tr>
+          <tr><td>Big (class X)</td><td>70</td><td>35</td><td>14</td></tr></table>
+        <p class="small muted" style="margin:10px 0 0">A red dot on the calendar marks a storm that's coming. Build the shield up before it arrives.</p></div>` },
+  { title: 'Your first-day plan',
+    mood: 'cheer', wave: true,
+    say: "That's everything! Don't worry about remembering it all. I'll be right next to you during the mission and give you advice every day.",
+    vis: () => `<div class="vis"><ol class="plan">
+        <li>Put <b>2 cells on life support</b> and <b>1 on the shield</b>. That keeps the base steady.</li>
+        <li>Spare cells? Leave them in the <b>battery</b> if night is close, or put them on <b>science</b> if you are safe.</li>
+        <li>See a red <b>storm alert</b>? Move spare cells to the <b>shield</b>.</li>
+        <li>Check the "tonight" numbers, then press <b>End the day</b>.</li>
+      </ol></div>
+      <p class="small muted" style="margin-top:10px">Score = science points + crew health. Survive all 12 days to earn up to three stars.</p>` }
+];
+let briefStep = 0, briefFromGame = false;
+
+function openBrief(fromGame) {
+  briefFromGame = fromGame; briefStep = 0;
+  $('brief').hidden = false; document.body.classList.add('locked');
+  drawBrief();
+}
+function closeBrief() {
+  $('brief').hidden = true; document.body.classList.remove('locked');
+  if (!briefFromGame) { startGame(); maybeTour(); }
+}
+function drawBrief() {
+  const s = BRIEF[briefStep], last = briefStep === BRIEF.length - 1;
+  $('brief-count').textContent = `Step ${briefStep + 1} of ${BRIEF.length}`;
+  $('brief-bar').style.width = ((briefStep + 1) / BRIEF.length * 100) + '%';
+  $('brief-pip').innerHTML = pipSVG(s.mood, s.wave ? 'wave' : '');
+  const say = $('brief-say');
+  say.innerHTML = `<span class="who">Pip</span>${s.say}`;
+  say.classList.remove('pop'); void say.offsetWidth; say.classList.add('pop');
+  $('brief-title').textContent = s.title;
+  $('brief-visual').innerHTML = s.vis();
+  $('brief-back').disabled = briefStep === 0;
+  $('brief-back').style.visibility = briefStep === 0 ? 'hidden' : 'visible';
+  $('brief-next').textContent = last ? (briefFromGame ? 'Back to the mission' : 'Begin mission') : 'Next';
+  $('brief-skip').hidden = last;
+  if (briefStep === 2) setupDemo();
+  $('brief-title').focus({ preventScroll: true });
+  Sound.blip();
+}
+function setupDemo() {
+  let n = 0;
+  const box = $('demo'), out = $('demo-out');
+  const draw = () => {
+    box.innerHTML = Array.from({ length: 5 }, (_, i) => `<button class="cell ${i < n ? 'on' : ''}" data-n="${i + 1}" aria-label="Practice cell ${i + 1}" style="--c:var(--air)"></button>`).join('');
+    out.innerHTML = n === 0 ? 'Tap a box to place a power cell.'
+      : n === 5 ? '<b>All 5 placed.</b> Nothing left for the battery today. Tap the last box to take one back.'
+      : `<b>${n} placed, ${5 - n} left.</b> The cells you leave go into the battery for tomorrow.`;
+  };
+  box.onclick = e => {
+    const b = e.target.closest && e.target.closest('.cell'); if (!b) return;
+    const k = Number(b.dataset.n), target = n === k ? k - 1 : k;
+    (target > n ? Sound.place() : Sound.remove()); n = target; draw();
+  };
+  draw();
+}
+
+/* ---------- The tour: on your first mission, Pip points at each part of the screen ---------- */
+const TOUR = [
+  { el: 'timeline', text: "This is the <b>mission calendar</b>. Amber days have sunlight, blue days are the lunar night. A red dot means a storm is coming." },
+  { el: 'gauges',   text: "These are your <b>base readings</b>. If Air or Crew health hits 0, the mission ends." },
+  { el: 'power',    text: "Here's where you <b>share the power</b>. Tap the boxes to place cells. Each row shows what will happen tonight." },
+  { el: 'btn-end',  text: "When you're happy with your plan, press <b>End the day</b>. The mission log below tells you what happened." },
+  { el: 'advice',   text: "And this is me! I'll sit here and give you <b>advice every day</b>, and warn you before anything goes wrong. Good luck, Commander." }
+];
+let tourStep = -1;
+function tourSeen() { try { return localStorage.getItem('mbm_tour_done') === '1'; } catch (e) { return false; } }
+function maybeTour() { if (!tourSeen()) setTimeout(() => startTour(), 450); }
+function startTour() {
+  tourStep = 0; $('tour').hidden = false;
+  $('tour-pip').innerHTML = pipSVG('happy', 'wave');
+  drawTour();
+}
+function endTour() {
+  $('tour').hidden = true; tourStep = -1;
+  try { localStorage.setItem('mbm_tour_done', '1'); } catch (e) {}
+}
+function drawTour() {
+  const s = TOUR[tourStep], el = $(s.el);
+  $('tour-step').textContent = `Pip / Tour ${tourStep + 1} of ${TOUR.length}`;
+  $('tour-text').innerHTML = s.text;
+  $('tour-next').textContent = tourStep === TOUR.length - 1 ? "Let's go" : 'Next';
+  el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  setTimeout(placeSpot, 380);
+  Sound.blip();
+}
+function placeSpot() {
+  if (tourStep < 0) return;
+  const r = $(TOUR[tourStep].el).getBoundingClientRect(), pad = 8, spot = $('spot'), card = $('tour-card');
+  Object.assign(spot.style, { left: (r.left - pad) + 'px', top: (r.top - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
+  const below = r.top + r.height / 2 < window.innerHeight / 2;   // put the card on the side away from the highlighted part
+  card.style.top = below ? 'auto' : '14px';
+  card.style.bottom = below ? '14px' : 'auto';
+}
+
 // ---------- clicks ----------
-$('btn-start').addEventListener('click', () => {
-  playerName = ($('name-input').value || '').trim().slice(0, 24) || 'Mission Commander';
-  Sound.init(); startGame();
-});
+function readName() { playerName = ($('name-input').value || '').trim().slice(0, 24) || 'Mission Commander'; }
+$('btn-start').addEventListener('click', () => { readName(); Sound.init(); openBrief(false); });
+$('btn-skip').addEventListener('click', () => { readName(); Sound.init(); startGame(); maybeTour(); });
+$('btn-help').addEventListener('click', () => { Sound.init(); Sound.click(); openBrief(!$('screen-game').hidden || !$('screen-end').hidden); });
 $('btn-again').addEventListener('click', () => { Sound.init(); startGame(); });
 $('btn-save').addEventListener('click', saveReport);
 $('btn-mute').addEventListener('click', () => {
@@ -780,6 +1270,20 @@ $('btn-mute').addEventListener('click', () => {
   $('btn-mute').textContent = Sound.on ? 'Sound on' : 'Sound off';
   $('btn-mute').setAttribute('aria-pressed', String(Sound.on));
 });
+
+$('brief-next').addEventListener('click', () => { if (briefStep < BRIEF.length - 1) { briefStep++; drawBrief(); } else closeBrief(); });
+$('brief-back').addEventListener('click', () => { if (briefStep > 0) { briefStep--; drawBrief(); } });
+$('brief-skip').addEventListener('click', closeBrief);
+document.addEventListener('keydown', e => {
+  if (!$('brief').hidden) {
+    if (e.key === 'ArrowRight') $('brief-next').click();
+    else if (e.key === 'ArrowLeft') $('brief-back').click();
+    else if (e.key === 'Escape') closeBrief();
+  } else if (tourStep >= 0 && e.key === 'Escape') endTour();
+});
+$('tour-next').addEventListener('click', () => { if (tourStep < TOUR.length - 1) { tourStep++; drawTour(); } else endTour(); });
+$('tour-skip').addEventListener('click', endTour);
+window.addEventListener('scroll', () => { if (tourStep >= 0) placeSpot(); }, { passive: true });
 
 $('rows').addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('.cell');
@@ -794,12 +1298,13 @@ $('rows').addEventListener('click', e => {
 });
 
 $('btn-end').addEventListener('click', () => {
+  if (tourStep >= 0) endTour();
   lastFocus = null;
   const ev = G.schedule.events[G.day];
   const lines = endDay(G);
   addLog(lines);
   if (ev && ev.type === 'storm') stormEffect();
-  $('fact').textContent = 'Space fact: ' + FACTS[factIndex++ % FACTS.length];
+  $('fact').textContent = FACTS[factIndex++ % FACTS.length];
   $('fact-card').hidden = false;
   if (G.over) finish(); else render();
   if (ev && ev.type === 'storm') Sound.storm(); else Sound.night();
@@ -807,9 +1312,10 @@ $('btn-end').addEventListener('click', () => {
   else if (warningsFor(G).length) setTimeout(() => Sound.alert(), ev && ev.type === 'storm' ? 1900 : 500);
 });
 
-window.addEventListener && window.addEventListener('resize', drawStars);
+window.addEventListener && window.addEventListener('resize', () => { drawStars(); if (tourStep >= 0) placeSpot(); });
 drawStars();
 buildGauges();
+$('title-pip').innerHTML = pipSVG('happy', 'wave');
 prepareData();   // start loading NASA data right away
 </script>
 </body>
