@@ -1537,7 +1537,12 @@ function adviceFor(g) {
   if (!isNight(g) && nightIn === 0) return ['worried', `This is the <b>last sunny day</b>. From tomorrow the panels give only 2 power. Leave some cells unplaced to fill the battery.`];
   if (!isNight(g) && nightIn <= 2) return ['happy', `The lunar night starts after day ${g.schedule.sunnyDays}. Try to save a few cells in the battery before then.`];
   if (left > CONFIG.BATTERY_MAX) return ['happy', `The battery is full, so unplaced power will be wasted. Put the extra cells on science or the shield.`];
-  if (isNight(g)) return ['happy', `It's the lunar night. You need 3 cells a day to stay steady (2 air, 1 shield), but the panels give only 2. The battery covers the gap.`];
+  if (isNight(g) && spendable(g) < 3) {
+    return g.alloc.life >= 2
+      ? ['happy', `The battery is empty, so there isn't enough power to keep everything steady. Putting both cells on <b>life support</b> is the right call: the air stays steady and the shield drops 8 tonight. You only lose if Air or Crew health reaches 0, so you're still OK.`]
+      : ['worried', `The battery is empty, so you only have ${spendable(g)} cell${spendable(g) === 1 ? '' : 's'}. Put them on <b>life support</b> first. The shield will drop a little each night, but running out of air ends the mission.`];
+  }
+  if (isNight(g)) return ['happy', `It's the lunar night. Staying steady needs 3 cells a day (2 air, 1 shield), but the panels give only 2. Your battery has <b>${g.battery}</b> saved to cover the gap. When it runs out, keep the 2 cells on life support.`];
   if (g.day === 1) return ['happy', `A good start: <b>2</b> on life support and <b>1</b> on the shield keeps the base steady. Spare cells can go to science or the battery.`];
   if (g.alloc.science === 0 && left >= 1 && g.battery >= 4) return ['happy', `Air and shield look fine, and the battery has power saved. This is a good day to earn some science points.`];
   return ['happy', `Looking good, Commander. Check each row's "tonight" number before you end the day.`];
