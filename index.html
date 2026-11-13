@@ -1020,14 +1020,14 @@ function updateAlerts() {
 function projection(k) {
   const a = G.alloc[k];
   if (k === 'life')   return `Air tonight: ${Math.round(G.oxygen)} to ${Math.round(Math.min(100, G.oxygen + a * 10 - 20))}`;
-  if (k === 'shield') return `Shield tonight: ${Math.round(G.shield)} to ${Math.round(Math.max(0, Math.min(100, G.shield + a * 8 - 8)))}`;
+  if (k === 'shield') { const raw = G.shield + a * 8 - 8; return `Shield tonight: ${Math.round(G.shield)} to ${Math.round(Math.max(0, Math.min(100, raw)))}` + (raw > 108 ? ' (full, extra wasted)' : ''); }
   return `+${a * 10} points`;
 }
 
 function updatePower() {
   const total = spendable(G), left = total - spent(G);
   $('power-left').textContent = left;
-  $('power-sub').textContent = `The panels give ${powerToday(G)} and the battery holds ${G.battery}.`;
+  $('power-sub').textContent = `The panels give ${powerToday(G)} and the battery holds ${G.battery}.` + (G.day > 1 ? " Yesterday's plan is kept, so check it before you end the day." : '');
   $('rows').innerHTML = ROWS.map(r => {
     const a = G.alloc[r.k];
     const cells = Array.from({ length: total }, (_, i) => {
@@ -1367,13 +1367,20 @@ function adviceFor(g) {
   const left = spendable(g) - spent(g);
   const nightIn = g.schedule.sunnyDays - g.day;   // days until the last sunny day
 
-  if (airTonight <= 0) return ['worried', `<b>Careful!</b> With this plan the air runs out tonight. Put more cells on life support.`];
+  if (airTonight <= 0) return ['worried', `<b>Careful!</b> With this plan the air runs out tonight and the mission ends. Put more cells on life support.`];
+  const drop = CONFIG.OXY_DRAIN - g.alloc.life * CONFIG.OXY_PER_UNIT;           // how much air is lost each day with this plan
+  const daysOfAir = drop > 0 ? Math.ceil(airTonight / drop) : Infinity;        // days after tonight before it reaches 0
+  const lifeWarn = ['worried', `<b>Life support has only ${g.alloc.life} cell${g.alloc.life === 1 ? '' : 's'}.</b> The crew breathes 20 air a day, so air drops by ${drop} tonight. If you keep this plan, the air runs out in about <b>${daysOfAir} day${daysOfAir === 1 ? '' : 's'}</b>, even with a full shield. Keep 2 cells on life support.`];
+  if (drop > 0 && daysOfAir <= 2) return lifeWarn;
+  const shieldWaste = Math.floor((g.shield + g.alloc.shield * CONFIG.SHIELD_PER_UNIT - CONFIG.SHIELD_DECAY - 100) / CONFIG.SHIELD_PER_UNIT);
   if (ev && ev.type === 'storm') {
     const harm = Math.round(CONFIG.STORM_DAMAGE[ev.severity] * (1 - shieldTonight / 100));
     return shieldTonight >= 50
       ? ['happy', `The storm hits tonight. Your shield will be at <b>${shieldTonight}%</b>, so the crew loses about <b>${harm}</b> health. Nice and safe.`]
       : ['worried', `The storm hits tonight! With the shield at <b>${shieldTonight}%</b>, the crew would lose about <b>${harm}</b> health. Every extra shield cell helps.`];
   }
+  if (drop > 0) return lifeWarn;
+  if (shieldWaste >= 1) return ['worried', `The shield can't go above 100, so <b>${shieldWaste} of your shield cell${shieldWaste === 1 ? ' is' : 's are'} wasted</b>. Move ${shieldWaste === 1 ? 'it' : 'them'} to life support, science or the battery.`];
   if (airTonight < 30) return ['worried', `Air will only be <b>${airTonight}</b> tonight. Two cells on life support keep it steady. Three make it go up.`];
   if (next && next.type === 'storm') return ['worried', `Space weather alert for tomorrow night. Start building the shield <b>today</b>, so it is strong in time.`];
   if (ev && ev.type === 'dust') return ['happy', `Dust on the panels means 1 less power today. Keep the basics first: 2 on life support, 1 on the shield.`];
@@ -1426,7 +1433,7 @@ const BRIEF = [
     vis: () => `<div class="vis"><span class="label">Practice: you have 5 power cells</span>
         <div class="mini-cells" id="demo" style="margin-top:10px;--c:var(--air)"></div>
         <div class="try-out" id="demo-out">Tap a box to place a power cell.</div></div>
-      <div class="vis small muted">Tap a box further along to fill up to it. Tap the last filled box to take one back. You can change your mind as often as you like until you press <b>End the day</b>.</div>` },
+      <div class="vis small muted">Tap a box further along to fill up to it. Tap the last filled box to take one back. You can change your mind as often as you like until you press <b>End the day</b>. Your plan stays the same the next day unless you change it.</div>` },
   { title: 'Three places to put power',
     mood: 'happy',
     say: "Every cell goes to one of three systems. See the <b>small white line</b>? That's how many cells keep a system steady.",
