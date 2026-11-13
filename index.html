@@ -293,9 +293,84 @@
   footer{margin-top:26px;font-size:.78rem;color:var(--muted);max-width:76ch}
   footer p{max-width:none;margin-bottom:6px}
 
+  /* ---------- game layout: everything important on one screen ---------- */
+  .game-grid{display:flex;flex-direction:column}
+  .col-left,.col-mid,.col-right{display:contents}
+  #scene-slot{order:0} .timeline{order:1} #alerts{order:2} #gauges{order:3} #crew{order:4} #advice{order:5} #power{order:6}
+  #scene-slot .scene-wrap{margin:0 0 12px}
+  .hudbar{display:none}
+  @media (min-width:1000px){
+    body.ingame .app{max-width:1360px}
+    body.ingame .topbar{padding:10px 0 10px}
+    .game-grid{display:grid;grid-template-columns:168px minmax(0,1fr) 330px;gap:12px;align-items:start}
+    .col-left,.col-mid,.col-right{display:block}
+    .col-left,.col-right{position:sticky;top:10px}
+    /* vertical mission calendar */
+    .timeline{padding:14px 12px;margin:0}
+    .timeline .tl-top{flex-direction:column;gap:2px;margin-bottom:10px}
+    .timeline #tl-sub{display:none}
+    .timeline .ticks{grid-template-columns:1fr;gap:4px}
+    .timeline .tick{height:28px;justify-content:space-between;display:flex;align-items:center;padding:0 10px}
+    .timeline .tick::after{content:attr(data-k);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+    .timeline .flag{top:50%;margin-top:-6px;right:auto;left:-6px}
+    .alert{padding:10px 14px;margin-bottom:10px;font-size:.92rem}
+    .advice{padding:8px 14px 8px 8px;margin-bottom:10px}
+    .advice .pip{width:56px}
+    .advice .bubble{padding:10px 14px;font-size:.94rem}
+    .power{padding:14px 20px 14px;margin:0}
+    .power-head{flex-wrap:nowrap;align-items:center}
+    .power-head > div:first-child{flex:1;min-width:0}
+    .power-head > div:last-child{flex:none}
+    .power-head .big{font-size:2rem}
+    .row{padding:9px 0}
+    .rhead{margin-bottom:6px}
+    .rname{font-size:1.02rem}
+    .rhint{font-size:.78rem}
+    .cell{width:32px;height:36px}
+    .power-foot{padding-top:12px}
+    .science-score b{font-size:1.4rem}
+    /* right column: camera, readings, crew */
+    #scene-slot .scene-wrap{margin:0 0 10px}
+    #scene-slot .scene-tag:not(.r){display:none}
+    #scene-slot .scene-tag{top:8px;font-size:.62rem}
+    #scene-slot .scene-tag.r{right:auto;left:12px}
+    .col-right .readouts{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+    .col-right .gauge{padding:10px 8px 8px}
+    .col-right .gauge svg{width:62px;height:62px}
+    .col-right .gnum{top:28px;font-size:1.1rem}
+    .col-right .gname{font-size:.9rem}
+    .col-right .ghint{font-size:.7rem}
+    .col-right .crew{grid-template-columns:1fr;gap:0;padding:6px 12px;margin:0}
+    .col-right .member{padding:5px 0;background:none;border:0;box-shadow:none;backdrop-filter:none;border-radius:0;border-top:1px solid var(--line)}
+    .col-right .member:first-child{border-top:0}
+    .col-right .member svg{width:26px;height:26px}
+    .col-right .member > div{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px;flex:1}
+    .col-right .member .st{margin:0 0 0 auto}
+    .col-right .member .role{display:none}
+    .col-right .member span{font-size:.72rem}
+    .notes{margin-top:12px}
+  }
+  @media (min-width:1000px) and (max-height:720px){
+    .col-right .ghint{display:none}
+    .rhint{display:none}
+    .cell{height:32px}
+    .row{padding:7px 0}
+    .alert{padding:8px 14px;font-size:.88rem}
+  }
+  @media (max-width:999px){
+    .hudbar{display:flex;position:sticky;top:0;z-index:12;justify-content:space-between;gap:6px;margin:0 -18px 12px;padding:9px 14px;
+      background:rgba(5,9,16,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+      font-family:var(--mono);font-size:.74rem;flex-wrap:wrap}
+    .hudbar span{white-space:nowrap}
+    .hudbar b{font-weight:600;font-size:.86rem}
+    .hudbar .low{color:var(--health)}
+    body.ingame .scene-wrap svg{max-height:130px}
+    body.ingame #scene-slot .scene-wrap{display:none}
+  }
+
   /* ---------- crew ---------- */
-  .crew{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-  .member{display:flex;gap:10px;align-items:center;padding:10px 12px}
+  .crew{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 12px;margin-bottom:12px;padding:10px 14px}
+  .member{display:flex;gap:10px;align-items:center;padding:4px 0}
   .member svg{width:40px;height:40px;flex:none}
   .member b{display:block;font-weight:500;font-size:.92rem;line-height:1.2}
   .member span{font-size:.75rem;color:var(--muted);line-height:1.25;display:block}
@@ -476,36 +551,42 @@
 
   <!-- ============ GAME ============ -->
   <section id="screen-game" hidden>
+    <!-- On phones this bar stays at the top of the screen, so the key numbers are always visible -->
+    <div class="hudbar" id="hudbar" aria-hidden="true"></div>
+    <div class="game-grid">
+      <aside class="col-left">
     <div class="timeline panel" id="timeline">
       <div class="tl-top"><b id="tl-label">Day 1 of 12</b><span class="muted small" id="tl-note"></span></div>
       <div class="ticks" id="tl"></div>
       <div class="muted small" id="tl-sub" style="margin-top:9px"></div>
     </div>
-
+      </aside>
+      <div class="col-mid">
     <div id="alerts" aria-live="assertive"></div>
-
-    <div class="readouts" id="gauges"></div>
-
-    <div class="crew" id="crew" aria-label="Your crew"></div>
-
     <div class="advice panel" id="advice">
       <div id="advice-pip"></div>
       <div class="bubble left" id="advice-text" aria-live="polite"></div>
     </div>
-
     <div class="power panel hud" id="power">
       <div class="power-head">
         <div><span class="label">Power distribution</span><h2 style="font-size:1.3rem;margin-top:2px">Share the power</h2><div class="muted small" id="power-sub"></div></div>
         <div style="text-align:right"><span class="big" id="power-left">0</span><div class="muted small">power cells left to place</div></div>
+        <div id="end-slot-top"></div>
       </div>
       <div id="rows"></div>
       <div class="power-foot">
         <div class="science-score">Science points<b id="v-science">0</b></div>
         <div class="muted small" id="battery-note" style="flex:1;min-width:200px"></div>
-        <button class="cta" id="btn-end">End the day</button>
+        <div id="end-slot-bottom"><button class="cta" id="btn-end">End the day</button></div>
       </div>
     </div>
-
+      </div>
+      <aside class="col-right">
+        <div id="scene-slot"></div>
+        <div class="readouts" id="gauges"></div>
+        <div class="crew panel" id="crew" aria-label="Your crew"></div>
+      </aside>
+    </div>
     <div class="notes">
       <div class="panel log" aria-live="polite"><span class="label">Mission log</span><div id="log"><p class="muted">Nothing yet. Place your power cells, then press End the day.</p></div></div>
       <div class="panel fact" id="fact-card" hidden><span class="label">Space fact</span><p id="fact"></p></div>
@@ -952,7 +1033,26 @@ const ROWS = [
   { k: 'science', name: 'Science lab',      color: '--gold',   mark: 0, hint: 'Each cell earns 10 points, but keeps nothing safe.' }
 ];
 
-function show(id) { ['screen-title', 'screen-game', 'screen-end'].forEach(s => { $(s).hidden = s !== id; }); }
+function show(id) {
+  ['screen-title', 'screen-game', 'screen-end'].forEach(s => { $(s).hidden = s !== id; });
+  const inGame = id === 'screen-game';
+  document.body.classList.toggle('ingame', inGame);
+  // during a mission the base camera sits in the right-hand column; on other screens it goes back to the top
+  if (inGame) $('scene-slot').appendChild($('scene'));
+  else $('screen-title').parentNode.insertBefore($('scene'), $('screen-title'));
+}
+
+// On wide screens the End the day button sits in the power header, so it's always visible without scrolling
+const wide = window.matchMedia ? matchMedia('(min-width:1000px)') : { matches: false };
+function placeEndButton() { $(wide.matches ? 'end-slot-top' : 'end-slot-bottom').appendChild($('btn-end')); }
+wide.addEventListener && wide.addEventListener('change', placeEndButton);
+
+function updateHudbar() {
+  const left = spendable(G) - spent(G);
+  const v = (name, val, low) => `<span class="${low ? 'low' : ''}">${name} <b>${val}</b></span>`;
+  $('hudbar').innerHTML = v('Day', `${G.day}/${CONFIG.DAYS}`) + v('Air', Math.round(G.oxygen), G.oxygen < 30) +
+    v('Shield', Math.round(G.shield), G.shield < 30) + v('Health', Math.round(G.health), G.health < 30) + v('Cells left', left);
+}
 
 // A dotted starfield drawn once
 function drawStars() {
@@ -998,7 +1098,7 @@ function updateTimeline() {
     const night = d > G.schedule.sunnyDays;
     const flag = ev && ev.type === 'storm' && d <= G.day + 1 ? '<i class="flag"></i>' : '';
     const cls = ['tick', night ? 'n' : 's', d < G.day ? 'past' : '', d === G.day ? 'now' : ''].join(' ');
-    return `<div class="${cls}" title="Day ${d}${night ? ', lunar night' : ', sunlight'}">${flag}${d}</div>`;
+    return `<div class="${cls}" data-k="${night ? 'Night' : 'Sun'}" title="Day ${d}${night ? ', lunar night' : ', sunlight'}">${flag}${d}</div>`;
   }).join('');
   $('scene-clock').textContent = `Day ${G.day} / ${isNight(G) ? 'Lunar night' : 'Sunlight'}`;
 }
@@ -1064,7 +1164,7 @@ function updateScene() {
 
 function render() {
   document.body.classList.toggle('night', isNight(G));
-  updateTimeline(); updateAlerts(); updateGauges(); updatePower(); updateScene(); updateAdvice(); renderCrew(); renderData();
+  updateTimeline(); updateAlerts(); updateGauges(); updatePower(); updateScene(); updateAdvice(); renderCrew(); renderData(); updateHudbar();
 }
 
 function addLog(lines) {
@@ -1209,7 +1309,7 @@ function helmet(c) {
 function renderCrew() {
   const air = G.oxygen, hp = G.health;
   const st = hp < 35 || air < 20 ? ['bad', 'Unwell'] : hp < 70 || air < 40 ? ['tired', 'Tired'] : ['ok', 'Doing well'];
-  $('crew').innerHTML = CREW.map(m => `<div class="member panel">${helmet(m.c)}<div><b>${m.name}</b><span>${m.role} / ${m.from}</span><div class="st ${st[0]}">${st[1]}</div></div></div>`).join('');
+  $('crew').innerHTML = CREW.map(m => `<div class="member">${helmet(m.c)}<div><b>${m.name}</b><span title="${m.role}"><i class="role" style="font-style:normal">${m.role} / </i>${m.from}</span><div class="st ${st[0]}">${st[1]}</div></div></div>`).join('');
 }
 
 // One line from the crew after each day, reacting to what happened
@@ -1626,6 +1726,7 @@ $('btn-end').addEventListener('click', () => {
 window.addEventListener && window.addEventListener('resize', () => { drawStars(); if (tourStep >= 0) placeSpot(); });
 drawStars();
 buildGauges();
+placeEndButton();
 $('title-pip').innerHTML = pipSVG('happy', 'wave');
 prepareData();   // start loading NASA data right away
 </script>
