@@ -293,7 +293,54 @@
   footer{margin-top:26px;font-size:.78rem;color:var(--muted);max-width:76ch}
   footer p{max-width:none;margin-bottom:6px}
 
+  /* ---------- crew ---------- */
+  .crew{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+  .member{display:flex;gap:10px;align-items:center;padding:10px 12px}
+  .member svg{width:40px;height:40px;flex:none}
+  .member b{display:block;font-weight:500;font-size:.92rem;line-height:1.2}
+  .member span{font-size:.75rem;color:var(--muted);line-height:1.25;display:block}
+  .member .st{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+  .st.ok{color:var(--shield)} .st.tired{color:var(--power)} .st.bad{color:var(--health)}
+  .log p.crewlog{border-left-color:var(--earth);color:rgba(238,242,247,.92)}
+  .log p.crewlog b{font-weight:500;color:var(--earth)}
+
+  /* ---------- space weather data panel ---------- */
+  .data{padding:18px 20px;margin-top:12px}
+  .data-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid var(--line-strong)}
+  .chip.live{color:#58e6a3;border-color:rgba(88,230,163,.5)} .chip.arch{color:var(--power);border-color:rgba(255,194,107,.5)}
+  #flare-chart{display:block;width:100%;height:auto;margin:10px 0 4px}
+  #flare-chart text{font-family:var(--mono);font-size:11px;fill:rgba(226,233,242,.55)}
+  .data a{color:var(--earth)}
+  .used-list div{font-size:.9rem;padding:7px 0;border-top:1px solid var(--line)}
+
+  /* ---------- Mission Lab ---------- */
+  .lab{width:min(980px,100%);padding:22px 26px 22px;animation:rise .35s ease-out}
+  .lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+  .stepbox{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.025)}
+  .stepbox .label{display:block;margin-bottom:6px;color:var(--power)}
+  .stepbox.off{opacity:.45}
+  .plans{display:grid;gap:8px}
+  .plan-btn{text-align:left;border:1px solid var(--line-strong);background:rgba(255,255,255,.03);border-radius:12px;padding:10px 14px;font-size:.88rem;color:var(--muted);transition:border-color .15s,background .15s}
+  .plan-btn b{display:block;color:var(--text);font-weight:500;font-size:.98rem}
+  .plan-btn:hover{background:rgba(255,255,255,.07)}
+  .plan-btn[aria-pressed="true"]{border-color:var(--power);background:rgba(255,194,107,.1)}
+  #lab-chart{display:block;width:100%;height:auto}
+  #lab-chart text{font-family:var(--mono);font-size:12px;fill:rgba(226,233,242,.7)}
+  #lab-chart .bar{transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  .lab-pip{display:flex;gap:12px;align-items:center;margin-top:14px}
+  .lab-pip .pip{width:64px;flex:none}
+  .lab-pip .bubble{flex:1}
+
+  /* ---------- back on Earth ---------- */
+  .earthbox{margin-top:18px;padding:16px 20px}
+  .earthbox ul{margin:8px 0 0;padding-left:1.1rem}
+  .earthbox li{margin-bottom:8px;max-width:70ch}
+
   @media (max-width:760px){
+    .crew{grid-template-columns:repeat(2,1fr)}
+    .lab{padding:18px 16px}
+    .lab-grid{grid-template-columns:1fr}
     #screen-title{grid-template-columns:1fr;padding:24px 20px}
     .title-guide{flex-direction:row-reverse;align-items:flex-end;order:-1}
     .title-guide .pip{width:92px;flex:none}
@@ -340,6 +387,7 @@
     <div class="top-actions">
       <span class="mission-id" id="mission-id"></span>
       <button class="btn2 sm" id="btn-help">How to play</button>
+      <button class="btn2 sm" id="btn-lab">Mission Lab</button>
       <button class="btn2 sm" id="btn-mute" aria-pressed="true">Sound on</button>
     </div>
   </header>
@@ -438,6 +486,8 @@
 
     <div class="readouts" id="gauges"></div>
 
+    <div class="crew" id="crew" aria-label="Your crew"></div>
+
     <div class="advice panel" id="advice">
       <div id="advice-pip"></div>
       <div class="bubble left" id="advice-text" aria-live="polite"></div>
@@ -459,6 +509,13 @@
     <div class="notes">
       <div class="panel log" aria-live="polite"><span class="label">Mission log</span><div id="log"><p class="muted">Nothing yet. Place your power cells, then press End the day.</p></div></div>
       <div class="panel fact" id="fact-card" hidden><span class="label">Space fact</span><p id="fact"></p></div>
+    </div>
+
+    <div class="panel data" id="data-panel">
+      <div class="data-head"><div><span class="label">Space weather data</span><h2>Real solar flares from NASA</h2></div><span class="chip" id="data-chip"></span></div>
+      <svg id="flare-chart" viewBox="0 0 640 190" role="img" aria-label="Chart of real solar flares by strength"></svg>
+      <p class="small muted" id="data-caption"></p>
+      <div class="used-list" id="used-list"></div>
     </div>
   </section>
 
@@ -486,8 +543,14 @@
     </div>
     <h2 style="margin:18px 0 6px">What real mission planners face too</h2>
     <ul id="end-learn"></ul>
+    <div class="earthbox panel">
+      <span class="label">Back on Earth</span>
+      <h2 style="margin-top:4px">The same problems matter here too</h2>
+      <ul id="earth-list"></ul>
+    </div>
     <div class="actions">
       <button class="cta" id="btn-again">Play again</button>
+      <button class="btn2" id="btn-lab2">Test strategies in the Mission Lab</button>
       <button class="btn2" id="btn-save">Save mission report as an image</button>
     </div>
     <p class="muted small" style="margin:12px 0 0">The solar storms will be different next time.</p>
@@ -521,6 +584,33 @@
         <button class="cta" id="brief-next">Next</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ============ MISSION LAB: test strategies like a scientist ============ -->
+<div class="overlay" id="lab" hidden role="dialog" aria-modal="true" aria-labelledby="lab-title">
+  <div class="lab panel hud">
+    <div class="brief-top"><span class="label">Mission Lab / Test it like a scientist</span><button class="btn2 sm" id="lab-close">Close</button></div>
+    <h2 id="lab-title" tabindex="-1" style="font-size:1.6rem;letter-spacing:-.02em;margin:0 0 12px">Which plan keeps the crew alive most often?</h2>
+    <div class="lab-grid">
+      <div>
+        <div class="stepbox"><span class="label">1. Question</span>Some players play it safe, some chase science points. Which plan really works best when solar storms come? Mission planners answer questions like this by testing, not guessing.</div>
+        <div class="stepbox" style="margin-top:10px"><span class="label">2. Hypothesis: make a prediction</span>
+          <p class="small muted" style="margin:0 0 8px">Which plan do you think will survive most often?</p>
+          <div class="plans" id="lab-plans"></div>
+        </div>
+      </div>
+      <div>
+        <div class="stepbox off" id="lab-exp"><span class="label">3. Experiment</span>
+          <p class="small" style="margin:0 0 10px">The computer plays <b>500 missions with each plan</b>. It's a fair test: every plan faces exactly the same 500 missions, with storms from the same real NASA flares. Only the plan changes.</p>
+          <button class="cta sm" id="lab-run" disabled>Run 2,000 missions</button>
+        </div>
+        <div class="stepbox off" id="lab-res" style="margin-top:10px"><span class="label">4. Results</span>
+          <svg id="lab-chart" viewBox="0 0 440 200" role="img" aria-label="Results chart"></svg>
+        </div>
+      </div>
+    </div>
+    <div class="lab-pip"><div id="lab-pip"></div><div class="bubble left" id="lab-say"></div></div>
   </div>
 </div>
 
@@ -615,7 +705,7 @@ function buildSchedule(flares, rng = Math.random) {
   const chosen = shuffle(pool, rng);
   stormDays.forEach((d, i) => {
     const f = chosen[i % chosen.length] || ARCHIVED_FLARES[i];
-    events[d] = { type: 'storm', cls: f.cls, date: f.date, source: f.source || 'archived', severity: severityOf(f.cls) };
+    events[d] = { type: 'storm', cls: f.cls, date: f.date, link: f.link || '', source: f.source || 'archived', severity: severityOf(f.cls) };
   });
   // two non-storm surprises
   const free = shuffle([...Array(D).keys()].map(i => i + 1).filter(d => !events[d]), rng);
@@ -709,6 +799,63 @@ function rating(g) {
   const total = g.science + Math.round(g.health / 2);
   return total >= 110 ? 3 : total >= 70 ? 2 : 1;
 }
+
+/* ---------- Mission Lab: test a strategy on many simulated missions (the scientific method) ---------- */
+const STRATEGIES = {
+  steady: {
+    name: 'Steady', short: 'Steady',
+    desc: '2 cells on air and 1 on the shield every day. Save everything else in the battery.',
+    plan: g => ({ life: 2, shield: 1, science: 0 })
+  },
+  science: {
+    name: 'Science first', short: 'Science',
+    desc: '2 on air and 1 on the shield. Every spare cell goes to science.',
+    plan: g => ({ life: 2, shield: 1, science: Math.max(0, spendable(g) - 3) })
+  },
+  shield: {
+    name: 'Shield first', short: 'Shield',
+    desc: '2 on air. Every other cell goes to the shield.',
+    plan: g => ({ life: 2, shield: Math.max(1, spendable(g) - 2), science: 0 })
+  },
+  weather: {
+    name: 'Watch the weather', short: 'Weather',
+    desc: 'Like Steady, but spare cells go to the shield when a storm alert appears, and to science when the battery is nearly full.',
+    plan: g => {
+      const a = { life: 2, shield: 1, science: 0 };
+      let spare = spendable(g) - 3;
+      if (spare <= 0) return a;
+      if (warningsFor(g).length) { a.shield += spare; return a; }
+      if (!isNight(g)) a.science = Math.max(0, spare - 6);   // keep about 6 in the battery for the night
+      return a;
+    }
+  }
+};
+
+// A seeded random generator, so every plan can face exactly the same missions (a fair test)
+function seeded(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function simulateMission(planFn, flares, rng = Math.random) {
+  const g = newGame(flares, rng);
+  while (!g.over) { g.alloc = planFn(g); clampAlloc(g); endDay(g); }
+  return g;
+}
+
+function runExperiment(key, n, flares, seed = 1) {
+  let won = 0, scoreSum = 0, scienceSum = 0, healthSum = 0;
+  for (let i = 0; i < n; i++) {
+    const g = simulateMission(STRATEGIES[key].plan, flares, seeded(seed + i));   // mission i is the same for every plan
+    if (g.won) { won++; scoreSum += g.science + Math.round(g.health / 2); }
+    scienceSum += g.science; healthSum += g.health;
+  }
+  return { key, n, survival: won / n, avgScore: won ? scoreSum / won : 0, avgScience: scienceSum / n, avgHealth: healthSum / n };
+}
 // </LOGIC>
 
 /* ======================= PART 2: NASA DATA ======================= */
@@ -729,6 +876,7 @@ async function loadLiveFlares() {
     return data.filter(f => f.classType).map(f => ({
       cls: f.classType,
       date: (f.peakTime || f.beginTime || '').slice(0, 10),
+      link: f.link || '',
       source: 'live'
     }));
   } finally { clearTimeout(timer); }
@@ -916,13 +1064,13 @@ function updateScene() {
 
 function render() {
   document.body.classList.toggle('night', isNight(G));
-  updateTimeline(); updateAlerts(); updateGauges(); updatePower(); updateScene(); updateAdvice();
+  updateTimeline(); updateAlerts(); updateGauges(); updatePower(); updateScene(); updateAdvice(); renderCrew(); renderData();
 }
 
 function addLog(lines) {
   const box = $('log');
   if (box.querySelector('.muted')) box.innerHTML = '';
-  box.innerHTML = lines.map(t => `<p>${t}</p>`).join('') + box.innerHTML;
+  box.innerHTML = lines.map(t => t.startsWith('<p') ? t : `<p>${t}</p>`).join('') + box.innerHTML;
 }
 
 function stormEffect() {
@@ -986,6 +1134,7 @@ function finish() {
   $('rep-storms').innerHTML = R.storms.length
     ? R.storms.map(t => `<div class="storm-line">${t}</div>`).join('')
     : '<div class="storm-line">No storm reached the base before the mission ended.</div>';
+  $('earth-list').innerHTML = EARTH.map(t => `<li>${t}</li>`).join('');
   $('end-learn').innerHTML = [
     'Power has to be shared. Choosing science today can mean less safety tomorrow.',
     'Solar power disappears during the lunar night, so planning ahead and batteries matter.',
@@ -1029,6 +1178,148 @@ function saveReport() {
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1500);
   });
 }
+
+/* ======================= PART 5: CREW, DATA, LAB, EARTH ======================= */
+// The crew comes from different countries, because space exploration is shared by the whole world.
+// The names are made up for the game.
+const CREW = [
+  { name: 'Asha Rao',      role: 'Commander', from: 'India',  c: '#ffc26b' },
+  { name: 'Liam Tremblay', role: 'Engineer',  from: 'Canada', c: '#8fd3ff' },
+  { name: 'Yuki Sato',     role: 'Doctor',    from: 'Japan',  c: '#ff8a78' },
+  { name: 'Sofia Mendes',  role: 'Scientist', from: 'Brazil', c: '#a8e6b0' }
+];
+const SCIENCE_WORK = [
+  'We collected soil samples to look for water ice',
+  'We set up a seismometer to listen for moonquakes',
+  'We grew lettuce seedlings under lamps to learn how to make food here',
+  'We tested how well packed Moon soil blocks radiation',
+  'We photographed the Earth to study its clouds from far away',
+  'We measured the radiation dose inside the base'
+];
+const QUIET = [
+  [0, 'A quiet day. I called home, and the Earth looks tiny from here.'],
+  [1, 'All systems checked. The base is running smoothly.'],
+  [2, 'Crew check-up done. Everyone exercised for two hours to keep bones and muscles strong.'],
+  [3, 'Through the window I can see craters older than the dinosaurs.']
+];
+
+function helmet(c) {
+  return `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#e3e8ee"/><ellipse cx="20" cy="21" rx="12.5" ry="10.5" fill="#132a45" stroke="${c}" stroke-width="2"/><path d="M12 17 Q15 13 20 12" stroke="#fff" stroke-opacity=".5" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+}
+function renderCrew() {
+  const air = G.oxygen, hp = G.health;
+  const st = hp < 35 || air < 20 ? ['bad', 'Unwell'] : hp < 70 || air < 40 ? ['tired', 'Tired'] : ['ok', 'Doing well'];
+  $('crew').innerHTML = CREW.map(m => `<div class="member panel">${helmet(m.c)}<div><b>${m.name}</b><span>${m.role} / ${m.from}</span><div class="st ${st[0]}">${st[1]}</div></div></div>`).join('');
+}
+
+// One line from the crew after each day, reacting to what happened
+function crewLine(g, ev, A, dmg, nightStarted) {
+  const say = (i, t) => `<p class="crewlog"><b>${CREW[i].name}, ${CREW[i].role} (${CREW[i].from}):</b> ${t}</p>`;
+  if (g.over && !g.won) return '';
+  if (ev && ev.type === 'storm') {
+    return say(2, dmg <= 10 ? 'Everyone is fine. The shield did its job.'
+      : dmg < 30 ? 'A few of us feel unwell after the storm. Let\'s keep the shield strong.'
+      : 'That storm hurt us badly. We need more shielding before the next one.');
+  }
+  if (ev && ev.type === 'leak') return say(1, 'I found a small air leak in module 2 and patched it.');
+  if (ev && ev.type === 'dust') return say(1, 'I spent the morning brushing Moon dust off the solar panels.');
+  if (nightStarted) return say(0, 'The Sun has set. About two weeks of darkness ahead, so we must use power carefully.');
+  if (g.oxygen < 30) return say(0, 'The air is getting thin in here. Please power life support.');
+  if (warningsFor(g).some(w => w.level === 'soon')) return say(0, 'Mission control on Earth sent a space weather alert. A storm is expected tomorrow night.');
+  if (A.science > 0) return say(3, `${SCIENCE_WORK[g.day % SCIENCE_WORK.length]}. Science +${A.science * CONFIG.SCIENCE_PER_UNIT}.`);
+  const q = QUIET[g.day % QUIET.length];
+  return say(q[0], q[1]);
+}
+
+// Each flare class is a brightness in X-rays. Each letter is 10 times brighter than the one before.
+function flareFlux(cls) {
+  const base = { A: 1e-8, B: 1e-7, C: 1e-6, M: 1e-5, X: 1e-4 }[String(cls).charAt(0).toUpperCase()] || 1e-6;
+  return base * (parseFloat(String(cls).slice(1)) || 1);
+}
+const DONKI_HOME = 'https://ccmc.gsfc.nasa.gov/tools/DONKI/';
+function renderData() {
+  const flares = flareSource.flares.slice().sort((a, b) => a.date < b.date ? -1 : 1);
+  const live = flares.filter(f => f.source === 'live').length;
+  const chip = $('data-chip');
+  chip.className = 'chip ' + (live ? 'live' : 'arch');
+  chip.textContent = live ? (live === flares.length ? 'Live data' : 'Live + archived') : 'Archived data';
+  const storms = Object.entries(G.schedule.events).filter(([, e]) => e.type === 'storm').map(([d, e]) => ({ day: +d, ...e }));
+  const shown = storms.filter(s => s.day <= G.day + 1 || G.over);   // only reveal a storm once its alert has appeared
+  const W = 640, H = 190, L = 34, R = 10, T = 10, B = 30;
+  const y = cls => { const v = Math.log10(Math.max(1e-6, Math.min(1e-3, flareFlux(cls)))); return T + (H - T - B) * (1 - (v + 6) / 3); };
+  const x = i => L + (W - L - R) * (flares.length === 1 ? 0.5 : i / (flares.length - 1));
+  let svg = '';
+  [['C', -6, 'rgba(143,211,255,.06)'], ['M', -5, 'rgba(255,194,107,.07)'], ['X', -4, 'rgba(255,111,79,.09)']].forEach(([k, e, col]) => {
+    const y1 = T + (H - T - B) * (1 - (e + 7) / 3), y0 = T + (H - T - B) * (1 - (e + 6) / 3);
+    svg += `<rect x="${L}" y="${y1}" width="${W - L - R}" height="${y0 - y1}" fill="${col}"/><text x="${L - 8}" y="${(y0 + y1) / 2 + 4}" text-anchor="end">${k}</text>`;
+  });
+  flares.forEach((f, i) => {
+    const used = shown.find(s => s.cls === f.cls && s.date === f.date);
+    const sev = severityOf(f.cls), col = ['', '#8fd3ff', '#ffc26b', '#ff6f4f'][sev];
+    svg += `<circle cx="${x(i).toFixed(1)}" cy="${y(f.cls).toFixed(1)}" r="${used ? 6 : 4}" fill="${col}" opacity="${f.source === 'live' ? 1 : .7}"${used ? ' stroke="#fff" stroke-width="2"' : ''}><title>Class ${f.cls}, ${f.date} (${f.source})</title></circle>`;
+  });
+  if (flares.length) svg += `<text x="${L}" y="${H - 8}">${flares[0].date}</text><text x="${W - R}" y="${H - 8}" text-anchor="end">${flares[flares.length - 1].date}</text>`;
+  $('flare-chart').innerHTML = svg;
+  $('data-caption').innerHTML = `Each dot is one real solar flare (${flares.length} in total), ordered by date. Higher means stronger: each band is <b>10 times</b> brighter in X-rays than the one below. Flares with a white ring are the ones your storms are based on. Source: NASA DONKI.`;
+  $('used-list').innerHTML = shown.length
+    ? shown.map(s => `<div>Day ${s.day} storm: class <b>${s.cls}</b> flare, ${s.date} (${s.source === 'live' ? 'live' : 'archived'}). <a href="${s.link || DONKI_HOME}" target="_blank" rel="noopener">${s.link ? 'See the NASA record' : 'Explore NASA DONKI'}</a></div>`).join('')
+    : '<div class="muted">The storms in your mission will be listed here once you get a space weather alert.</div>';
+}
+
+/* ---------- Mission Lab ---------- */
+let labPick = null, labFrom = null;
+function openLab() {
+  labFrom = document.activeElement; labPick = null;
+  $('lab').hidden = false; document.body.classList.add('locked');
+  $('lab-plans').innerHTML = Object.entries(STRATEGIES).map(([k, st]) => `<button class="plan-btn" data-k="${k}" aria-pressed="false"><b>${st.name}</b>${st.desc}</button>`).join('');
+  $('lab-run').disabled = true; $('lab-exp').classList.add('off'); $('lab-res').classList.add('off');
+  $('lab-chart').innerHTML = '<text x="220" y="105" text-anchor="middle">Results appear here after the experiment.</text>';
+  labSay('happy', 'Real scientists predict first, then test. Pick the plan you think will survive most often.');
+  $('lab-title').focus({ preventScroll: true });
+}
+function closeLab() { $('lab').hidden = true; if ($('brief').hidden) document.body.classList.remove('locked'); labFrom && labFrom.focus && labFrom.focus(); }
+function labSay(mood, text) {
+  $('lab-pip').innerHTML = pipSVG(mood);
+  const b = $('lab-say'); b.innerHTML = `<span class="who">Pip / Lab notes</span>${text}`;
+  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+}
+function runLab() {
+  const keys = Object.keys(STRATEGIES), seed = Math.floor(Math.random() * 1e6);
+  const res = keys.map(k => runExperiment(k, 500, flareSource.flares, seed));
+  $('lab-res').classList.remove('off');
+  const W = 440, rowH = 44, L = 92;
+  let svg = '';
+  res.forEach((r, i) => {
+    const yy = 8 + i * rowH, w = (W - L - 70) * r.survival;
+    svg += `<text x="0" y="${yy + 17}">${STRATEGIES[r.key].short}</text>
+      <rect x="${L}" y="${yy + 4}" width="${W - L - 70}" height="18" rx="5" fill="rgba(255,255,255,.06)"/>
+      <rect class="bar" x="${L}" y="${yy + 4}" width="0" data-w="${w.toFixed(1)}" height="18" rx="5" fill="${r.key === labPick ? '#ffc26b' : '#8fd3ff'}"/>
+      <text x="${W - 64}" y="${yy + 18}">${Math.round(r.survival * 100)}%</text>
+      <text x="${L}" y="${yy + 38}" style="font-size:10.5px;fill:rgba(226,233,242,.5)">avg score when survived: ${r.survival ? Math.round(r.avgScore) : 'none'}</text>`;
+  });
+  svg += `<text x="0" y="196" style="font-size:10.5px;fill:rgba(226,233,242,.5)">Bars: % of 500 missions the crew survived. Your prediction is amber.</text>`;
+  $('lab-chart').innerHTML = svg;
+  requestAnimationFrame(() => requestAnimationFrame(() => $('lab-chart').querySelectorAll('.bar').forEach(b => b.setAttribute('width', b.dataset.w))));
+  const best = res.slice().sort((a, b) => b.survival - a.survival || b.avgScore - a.avgScore)[0];
+  const mine = res.find(r => r.key === labPick);
+  const risky = res.filter(r => r.survival > 0).sort((a, b) => b.avgScore - a.avgScore)[0];
+  const pct = r => Math.round(r.survival * 100) + '%';
+  const supported = mine.survival >= best.survival - 0.005;
+  let text = supported
+    ? `<b>Conclusion: your hypothesis was supported.</b> ${STRATEGIES[labPick].name} survived ${pct(mine)} of missions. `
+    : `<b>Conclusion: your hypothesis was not supported.</b> ${STRATEGIES[labPick].name} survived ${pct(mine)}, but ${STRATEGIES[best.key].name} survived ${pct(best)}. That's fine: surprising results are how scientists learn. `;
+  if (risky && risky.key !== best.key && risky.avgScore > best.avgScore) text += `Notice that ${STRATEGIES[risky.key].name} scored the most points when it survived, but survived only ${pct(risky)} of the time. That's the trade-off real mission planners face.`;
+  else text += 'Try the winning plan yourself in the game and see if your score beats the computer.';
+  labSay(supported ? 'cheer' : 'happy', text);
+  $('lab-say').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  Sound.win();
+}
+
+const EARTH = [
+  '<b>Solar power and batteries:</b> homes, schools and clinics far from the power grid use solar panels and batteries too. They have to plan for cloudy days and nights, just like your base planned for the lunar night.',
+  '<b>Space weather reaches Earth:</b> strong solar storms can disturb satellites, GPS, radio signals and even power grids. That\'s why NASA and other agencies watch the Sun every day, using data like the flares in this game.',
+  '<b>Sharing limited resources:</b> water, energy and money are limited on Earth as well. Deciding what matters most today and what to save for tomorrow is a skill everyone needs.'
+];
 
 /* ======================= PART 4: PIP, THE GUIDE ======================= */
 // Pip is drawn with SVG, so there are no image files. mood: 'happy' | 'worried' | 'cheer', plus 'wave'
@@ -1265,6 +1556,17 @@ $('btn-skip').addEventListener('click', () => { readName(); Sound.init(); startG
 $('btn-help').addEventListener('click', () => { Sound.init(); Sound.click(); openBrief(!$('screen-game').hidden || !$('screen-end').hidden); });
 $('btn-again').addEventListener('click', () => { Sound.init(); startGame(); });
 $('btn-save').addEventListener('click', saveReport);
+$('btn-lab').addEventListener('click', () => { Sound.init(); Sound.click(); openLab(); });
+$('btn-lab2').addEventListener('click', () => { Sound.init(); Sound.click(); openLab(); });
+$('lab-close').addEventListener('click', closeLab);
+$('lab-run').addEventListener('click', runLab);
+$('lab-plans').addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.plan-btn'); if (!b) return;
+  labPick = b.dataset.k; Sound.click();
+  $('lab-plans').querySelectorAll('.plan-btn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  $('lab-run').disabled = false; $('lab-exp').classList.remove('off');
+  labSay('happy', `Your hypothesis: <b>${STRATEGIES[labPick].name}</b> will survive most often. Now run the experiment to test it.`);
+});
 $('btn-mute').addEventListener('click', () => {
   Sound.on = !Sound.on;
   $('btn-mute').textContent = Sound.on ? 'Sound on' : 'Sound off';
@@ -1279,7 +1581,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') $('brief-next').click();
     else if (e.key === 'ArrowLeft') $('brief-back').click();
     else if (e.key === 'Escape') closeBrief();
-  } else if (tourStep >= 0 && e.key === 'Escape') endTour();
+  } else if (!$('lab').hidden && e.key === 'Escape') closeLab(); else if (tourStep >= 0 && e.key === 'Escape') endTour();
 });
 $('tour-next').addEventListener('click', () => { if (tourStep < TOUR.length - 1) { tourStep++; drawTour(); } else endTour(); });
 $('tour-skip').addEventListener('click', endTour);
@@ -1300,8 +1602,10 @@ $('rows').addEventListener('click', e => {
 $('btn-end').addEventListener('click', () => {
   if (tourStep >= 0) endTour();
   lastFocus = null;
-  const ev = G.schedule.events[G.day];
+  const ev = G.schedule.events[G.day], A = { ...G.alloc }, hpBefore = G.health, wasNight = isNight(G);
   const lines = endDay(G);
+  const cl = crewLine(G, ev, A, hpBefore - G.health, !G.over && !wasNight && isNight(G));
+  if (cl) lines.push(cl);
   addLog(lines);
   if (ev && ev.type === 'storm') stormEffect();
   $('fact').textContent = FACTS[factIndex++ % FACTS.length];

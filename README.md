@@ -17,6 +17,13 @@ New players are never thrown in without help. Pip, a small astronaut guide drawn
 
 Players who already know the game can press **I know how to play** to skip straight in.
 
+## More to explore
+
+- **Mission Lab:** test strategies like a scientist. Pick a hypothesis ("which plan survives most often?"), run a fair test of 500 simulated missions per plan (every plan faces exactly the same missions), see the results chart, and read the conclusion.
+- **Space weather data panel:** every real flare in the game plotted by strength (C, M, X bands), with links to the NASA DONKI records for your storms.
+- **International crew:** Asha (India), Liam (Canada), Yuki (Japan) and Sofia (Brazil) write a log entry each day that reacts to what happened. The names are fictional.
+- **Back on Earth:** the debrief links the lessons to solar power in remote communities, space weather's effects on satellites, GPS and power grids, and sharing limited resources.
+
 ## What you learn by playing
 
 - Power is limited, so every choice has a cost. Science points mean less safety.
