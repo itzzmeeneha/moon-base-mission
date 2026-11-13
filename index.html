@@ -898,7 +898,9 @@ function endDay(g) {
   g.science += A.science * CONFIG.SCIENCE_PER_UNIT;
   g.battery = batteryAfter(g);
   if (g.shield < 0) g.shield = 0;
-  log.push(`Day ${g.day}: you placed ${spent(g)} power cells. Air ${A.life * 10 - 20 >= 0 ? '+' : ''}${A.life * 10 - 20}, shield ${A.shield * 8 - 8 >= 0 ? '+' : ''}${A.shield * 8 - 8}, science +${A.science * 10}.`);
+  const sign = n => (n >= 0 ? '+' : '') + n;
+  const dAir = A.life * CONFIG.OXY_PER_UNIT - CONFIG.OXY_DRAIN, dShield = A.shield * CONFIG.SHIELD_PER_UNIT - CONFIG.SHIELD_DECAY;
+  log.push(`Day ${g.day}: you placed ${spent(g)} power cells. Air ${sign(dAir)}, shield ${sign(dShield)}, science +${A.science * CONFIG.SCIENCE_PER_UNIT}.`);
 
   const ev = g.schedule.events[g.day];
   if (ev && ev.type === 'storm') {
@@ -909,7 +911,7 @@ function endDay(g) {
     g.shield = Math.max(0, g.shield - CONFIG.STORM_SHIELD_LOSS[ev.severity]);
   } else if (ev && ev.type === 'leak') {
     g.oxygen -= 10;
-    log.push('A tiny air leak cost you 10 air.');
+    log.push('A tiny air leak cost you 10 air.');   // the leak amount is fixed at 10
   } else if (ev && ev.type === 'dust') {
     log.push('Moon dust covered the solar panels, so you had 1 less power today.');
   }
@@ -1715,7 +1717,7 @@ function placeSpot() {
 function readName() { playerName = ($('name-input').value || '').trim().slice(0, 24) || 'Mission Commander'; }
 $('btn-start').addEventListener('click', () => { readName(); Sound.init(); openBrief(false); });
 $('btn-skip').addEventListener('click', () => { readName(); Sound.init(); startGame(); maybeTour(); });
-$('btn-help').addEventListener('click', () => { Sound.init(); Sound.click(); openBrief(!$('screen-game').hidden || !$('screen-end').hidden); });
+$('btn-help').addEventListener('click', () => { if (!$('screen-title').hidden) readName(); Sound.init(); Sound.click(); openBrief(!$('screen-game').hidden || !$('screen-end').hidden); });
 $('btn-again').addEventListener('click', () => { Sound.init(); startGame(); });
 $('btn-save').addEventListener('click', saveReport);
 $('btn-lab').addEventListener('click', () => { Sound.init(); Sound.click(); openLab(); });
