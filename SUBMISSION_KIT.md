@@ -44,28 +44,29 @@ Use these points in your project description and in the video. Only claim what y
 
 Pick **two or three** of these to lead with, rather than claiming all of them. The strongest fits are probably **Best Use of Science**, **Best Use of Data** and **Best Use of Storytelling**.
 
-## 5. Demo video script (about 3 minutes)
+## 5. Demo (the form allows ONLY a 30-second video OR up to 7 slides)
 
-Record your screen with a voiceover. Keep it calm and clear.
+To be eligible for a Global Award, the demo must be **no more than 7 slides** or **no longer than 30 seconds**, at a public link that needs no sign-in.
+
+**Option A (ready to use):** the 7-slide PDF in `demo/Moon-Base-Mission-demo.pdf`. Link it from GitHub.
+
+**Option B: 30-second video script** (screen recording with voiceover):
 
 | Time | Show | Say |
 |---|---|---|
-| 0:00 to 0:15 | Title screen with Pip | "This is Moon Base Mission, a trainer for young astronauts. I'm `<your name>` from team `<team name>`." |
-| 0:15 to 0:40 | Two or three briefing steps, tap the practice row | "Before the mission, Pip, our guide, trains you step by step, so anyone can play, even if they've never played a strategy game." |
-| 0:40 to 1:10 | Game screen: place cells, show Pip's warning change | "Every day you share a few power cells between air, the radiation shield and science. Pip checks your plan and warns you before something goes wrong." |
-| 1:10 to 1:35 | Storm alert, then the space weather chart and the NASA link | "This storm is based on a real solar flare from NASA's DONKI database. Here it is on the chart, with a link to its NASA record." |
-| 1:35 to 1:50 | Mission log with crew lines | "Our international crew reacts to every choice, so the data becomes a story." |
-| 1:50 to 2:30 | Mission Lab: pick a hypothesis, run, read the conclusion | "In the Mission Lab, players test strategies like scientists. They predict, then run a fair test of 2,000 missions. Most people expect the steady plan to be safe, but it survives only about one mission in ten." |
-| 2:30 to 2:50 | End screen: report and Back on Earth | "The debrief connects the lessons to Earth: solar power for remote communities, and protecting satellites and power grids from space weather." |
-| 2:50 to 3:00 | Footer credits | "One file, no install, real NASA data. Thank you." |
+| 0 to 5 s | Title screen with Pip | "Moon Base Mission: a trainer for young astronauts." |
+| 5 to 12 s | Place cells, Pip's warning changes | "Share limited power between air, a radiation shield and science. Pip, your guide, warns you before things go wrong." |
+| 12 to 20 s | Storm alert, then the flare chart | "Solar storms come from real NASA DONKI flare data." |
+| 20 to 27 s | Mission Lab results | "In the Mission Lab, you test strategies like a scientist, with a fair test of 2,000 missions." |
+| 27 to 30 s | Game link on screen | "Free, in any browser. Play it now." |
 
-Tips: play one practice game first so you know what will happen. Turn sound off with the button at the top if it gets in the way of your voice.
+If you make a video with any AI tool, the rules require a visible watermark saying it is AI-generated.
 
 ## 6. Checklist before you submit
 
 - [ ] Game is online (GitHub Pages link opens and works in a fresh browser tab)
 - [ ] README has the live link and your AI-use note filled in
-- [ ] Video is uploaded and its link opens without signing in
+- [ ] Demo (7 slides or 30-second video) link opens without signing in
 - [ ] Project page lists the NASA data used: DONKI solar flares (plus OSDR, RadLab and CSA as background for facts)
 - [ ] The data chip shows "Live data" when you test with your own API key from api.nasa.gov
 - [ ] You tried it on a phone
